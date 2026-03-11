@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="dev.angzarr.client.router.CommandHandlerRouterTest$DispatchTests" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-03-10T20:30:58" hostname="DESKTOP-GJ1OCQP" time="0.004">
+  <properties/>
+  <testcase name="dispatch_empty_pages_throws_exception()" classname="dev.angzarr.client.router.CommandHandlerRouterTest$DispatchTests" time="0.001"/>
+  <testcase name="dispatch_unknown_command_throws_router_exception()" classname="dev.angzarr.client.router.CommandHandlerRouterTest$DispatchTests" time="0.001"/>
+  <testcase name="dispatch_missing_command_book_throws_exception()" classname="dev.angzarr.client.router.CommandHandlerRouterTest$DispatchTests" time="0.0"/>
+  <testcase name="dispatch_rejected_command_throws_router_exception()" classname="dev.angzarr.client.router.CommandHandlerRouterTest$DispatchTests" time="0.001"/>
+  <testcase name="dispatch_successful_command_returns_events()" classname="dev.angzarr.client.router.CommandHandlerRouterTest$DispatchTests" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

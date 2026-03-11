@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="dev.angzarr.client.router.SagaRouterTest$BasicRouterTests" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-03-10T20:30:58" hostname="DESKTOP-GJ1OCQP" time="0.002">
+  <properties/>
+  <testcase name="getEventTypes_returns_handler_event_types()" classname="dev.angzarr.client.router.SagaRouterTest$BasicRouterTests" time="0.001"/>
+  <testcase name="getInputDomain_returns_domain()" classname="dev.angzarr.client.router.SagaRouterTest$BasicRouterTests" time="0.0"/>
+  <testcase name="getName_returns_router_name()" classname="dev.angzarr.client.router.SagaRouterTest$BasicRouterTests" time="0.0"/>
+  <testcase name="subscriptions_returns_domain_and_event_types()" classname="dev.angzarr.client.router.SagaRouterTest$BasicRouterTests" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

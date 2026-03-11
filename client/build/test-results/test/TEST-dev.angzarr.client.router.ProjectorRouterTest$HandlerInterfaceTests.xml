@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="dev.angzarr.client.router.ProjectorRouterTest$HandlerInterfaceTests" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-03-10T20:30:58" hostname="DESKTOP-GJ1OCQP" time="0.0">
+  <properties/>
+  <testcase name="projectionError_preserves_message()" classname="dev.angzarr.client.router.ProjectorRouterTest$HandlerInterfaceTests" time="0.0"/>
+  <testcase name="projectionError_preserves_cause()" classname="dev.angzarr.client.router.ProjectorRouterTest$HandlerInterfaceTests" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

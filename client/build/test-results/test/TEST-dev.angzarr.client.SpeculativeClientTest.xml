@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="dev.angzarr.client.SpeculativeClientTest" tests="7" skipped="0" failures="0" errors="0" timestamp="2026-03-10T20:30:58" hostname="DESKTOP-GJ1OCQP" time="0.012">
+  <properties/>
+  <testcase name="fromChannel_should_create_client_with_all_stubs()" classname="dev.angzarr.client.SpeculativeClientTest" time="0.009"/>
+  <testcase name="should_have_projector_method()" classname="dev.angzarr.client.SpeculativeClientTest" time="0.001"/>
+  <testcase name="should_have_commandHandler_method()" classname="dev.angzarr.client.SpeculativeClientTest" time="0.0"/>
+  <testcase name="should_have_processManager_method()" classname="dev.angzarr.client.SpeculativeClientTest" time="0.0"/>
+  <testcase name="connect_with_invalid_endpoint_should_throw()" classname="dev.angzarr.client.SpeculativeClientTest" time="0.001"/>
+  <testcase name="should_have_saga_method()" classname="dev.angzarr.client.SpeculativeClientTest" time="0.0"/>
+  <testcase name="should_have_close_method()" classname="dev.angzarr.client.SpeculativeClientTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

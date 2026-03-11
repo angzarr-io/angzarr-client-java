@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="dev.angzarr.client.compensation.RejectionHandlerResponseTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-03-10T20:30:58" hostname="DESKTOP-GJ1OCQP" time="0.053">
+  <properties/>
+  <testcase name="response_with_both_events_and_notification()" classname="dev.angzarr.client.compensation.RejectionHandlerResponseTest" time="0.051"/>
+  <testcase name="empty_response_has_no_events_or_notification()" classname="dev.angzarr.client.compensation.RejectionHandlerResponseTest" time="0.0"/>
+  <testcase name="response_events_pages_accessible()" classname="dev.angzarr.client.compensation.RejectionHandlerResponseTest" time="0.0"/>
+  <testcase name="response_with_notification_only()" classname="dev.angzarr.client.compensation.RejectionHandlerResponseTest" time="0.001"/>
+  <testcase name="response_with_events_only()" classname="dev.angzarr.client.compensation.RejectionHandlerResponseTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
