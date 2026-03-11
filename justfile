@@ -9,7 +9,7 @@
 #
 # When running outside a devcontainer:
 #   - Uses pre-built angzarr-java image from ghcr.io/angzarr
-#   - Podman mounts justfile.container as /workspace/client/java/justfile
+#   - Podman mounts justfile.container as /workspace/justfile
 #
 # When running inside a devcontainer (DEVCONTAINER=true):
 #   - Commands execute directly via `just <target>`
@@ -17,7 +17,7 @@
 
 set shell := ["bash", "-c"]
 
-TOP := `git rev-parse --show-toplevel`
+ROOT := `git rev-parse --show-toplevel`
 IMAGE := "ghcr.io/angzarr-io/angzarr-java:latest"
 
 # Run just target in container (or directly if already in devcontainer)
@@ -28,9 +28,9 @@ _container +ARGS:
         just {{ARGS}}
     else
         podman run --rm --network=host \
-            -v "{{TOP}}:/workspace:Z" \
-            -v "{{TOP}}/client/java/justfile.container:/workspace/client/java/justfile:ro" \
-            -w /workspace/client/java \
+            -v "{{ROOT}}:/workspace:Z" \
+            -v "{{ROOT}}/justfile.container:/workspace/justfile:ro" \
+            -w /workspace \
             -e DEVCONTAINER=true \
             {{IMAGE}} just {{ARGS}}
     fi
@@ -62,4 +62,4 @@ publish-local:
     just _container publish-local
 
 clean:
-    rm -rf "{{TOP}}/client/java/build" "{{TOP}}/client/java/proto/build" "{{TOP}}/client/java/client/build" "{{TOP}}/client/java/.gradle"
+    rm -rf "{{ROOT}}/build" "{{ROOT}}/proto/build" "{{ROOT}}/client/build" "{{ROOT}}/.gradle"
