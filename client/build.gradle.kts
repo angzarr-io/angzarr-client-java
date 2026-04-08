@@ -49,7 +49,7 @@ tasks.test {
 
 // Copy shared feature files to test resources
 tasks.register<Copy>("copyClientFeatures") {
-    from("${rootDir}/../features")
+    from("${rootDir}/angzarr/features")
     into("src/test/resources/features")
 }
 

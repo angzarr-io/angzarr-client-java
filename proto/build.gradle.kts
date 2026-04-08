@@ -35,7 +35,7 @@ sourceSets {
     main {
         proto {
             // Use proto root so imports like "angzarr/types.proto" resolve
-            srcDir("../../../proto")
+            srcDir("${rootDir}/angzarr/proto")
             // Exclude health protos - not needed for Java client
             exclude("health/**")
         }
