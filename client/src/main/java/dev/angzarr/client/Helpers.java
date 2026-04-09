@@ -23,6 +23,15 @@ public final class Helpers {
 
     private Helpers() {}
 
+    // Constants matching Rust proto_ext::constants
+    public static final String UNKNOWN_DOMAIN = "unknown";
+    public static final String WILDCARD_DOMAIN = "*";
+    public static final String DEFAULT_EDITION = "angzarr";
+    public static final String META_ANGZARR_DOMAIN = "_angzarr";
+    public static final String PROJECTION_DOMAIN_PREFIX = "_projection";
+    public static final String CORRELATION_ID_HEADER = "x-correlation-id";
+    public static final String TYPE_URL_PREFIX = "type.googleapis.com/";
+
     /**
      * Convert a java.util.UUID to an Angzarr UUID proto.
      */
@@ -95,12 +104,16 @@ public final class Helpers {
 
     /**
      * Calculate the next sequence number from an EventBook.
+     *
+     * Uses the framework-precomputed next_sequence field rather than counting
+     * pages, because snapshots may cause the EventBook to contain only
+     * post-snapshot events — counting pages would give the wrong sequence.
      */
     public static int nextSequence(EventBook book) {
-        if (book == null || book.getPagesList().isEmpty()) {
+        if (book == null) {
             return 0;
         }
-        return book.getPagesList().size();
+        return (int) book.getNextSequence();
     }
 
     /**
@@ -117,8 +130,6 @@ public final class Helpers {
         int idx = typeUrl.lastIndexOf('/');
         return idx >= 0 ? typeUrl.substring(idx + 1) : typeUrl;
     }
-
-    private static final String TYPE_URL_PREFIX = "type.googleapis.com/";
 
     /**
      * Check if a type URL matches the given fully qualified type name.
