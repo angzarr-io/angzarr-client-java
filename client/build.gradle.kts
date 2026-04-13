@@ -47,9 +47,9 @@ tasks.test {
     systemProperty("cucumber.junit-platform.naming-strategy", "long")
 }
 
-// Copy shared feature files to test resources
+// Copy only client library feature files to test resources (not examples/acceptance)
 tasks.register<Copy>("copyClientFeatures") {
-    from("${rootDir}/angzarr/features")
+    from("${rootDir}/angzarr-core/features/client")
     into("src/test/resources/features")
 }
 
