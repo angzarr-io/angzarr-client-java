@@ -34,14 +34,14 @@ protobuf {
 // Resolve proto source directory.
 // When used as a composite build (e.g. examples-java), a system property can override
 // the proto path to reference a sibling submodule directly (no file copying needed).
-// Default: the nested angzarr submodule (angzarr-client-java/angzarr/proto).
+// Default: the nested angzarr-core submodule (angzarr-client-java/angzarr-core/proto).
 val protoDirOverride = System.getProperty("angzarrProtoDir")
 val protoDir = if (protoDirOverride != null) {
     // Resolve relative paths against the composite build root (parent of this included build)
     if (protoDirOverride.startsWith("/")) File(protoDirOverride)
     else rootDir.parentFile.resolve(protoDirOverride)
 } else {
-    file("${rootDir}/angzarr/proto")
+    file("${rootDir}/angzarr-core/proto")
 }
 
 // Additional proto exclusions (comma-separated globs) via system property.
