@@ -34,8 +34,6 @@ import java.util.function.Function;
  */
 public class EventRouter {
 
-    private static final String TYPE_URL_PREFIX = "type.googleapis.com/";
-
     private final String name;
     private String currentDomain;
     private final Map<Class<?>, PrepareRegistration<?>> prepareHandlers = new HashMap<>();
@@ -293,7 +291,7 @@ public class EventRouter {
      * @return Any containing the packed command
      */
     public static Any packCommand(Message command) {
-        return Any.pack(command, TYPE_URL_PREFIX);
+        return Any.pack(command, Helpers.TYPE_URL_PREFIX);
     }
 
     /**

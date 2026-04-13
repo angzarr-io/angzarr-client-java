@@ -32,8 +32,6 @@ import java.util.function.Function;
  */
 public class CommandRouter<S> {
 
-    private static final String TYPE_URL_PREFIX = "type.googleapis.com/";
-
     private final String domain;
     private final Function<EventBook, S> stateBuilder;
     private final Map<Class<?>, HandlerRegistration<?>> handlers = new HashMap<>();
@@ -137,7 +135,7 @@ public class CommandRouter<S> {
                     .setCover(commandBook.getCover())
                     .addPages(EventPage.newBuilder()
                             .setHeader(PageHeader.newBuilder().setSequence(seq).build())
-                            .setEvent(Any.pack(event, TYPE_URL_PREFIX))
+                            .setEvent(Any.pack(event, Helpers.TYPE_URL_PREFIX))
                             .build())
                     .build();
         } catch (InvalidProtocolBufferException e) {
@@ -218,7 +216,7 @@ public class CommandRouter<S> {
      * @return Any containing the packed event
      */
     public static Any packEvent(Message event) {
-        return Any.pack(event, TYPE_URL_PREFIX);
+        return Any.pack(event, Helpers.TYPE_URL_PREFIX);
     }
 
     // ========================================================================
