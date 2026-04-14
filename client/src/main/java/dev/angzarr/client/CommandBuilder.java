@@ -6,6 +6,7 @@ import dev.angzarr.CommandBook;
 import dev.angzarr.CommandPage;
 import dev.angzarr.CommandResponse;
 import dev.angzarr.Cover;
+import dev.angzarr.MergeStrategy;
 import dev.angzarr.PageHeader;
 
 import java.util.UUID;
