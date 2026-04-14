@@ -22,16 +22,14 @@ import java.util.Map;
  * SagaRouter router = new SagaRouter(
  *     "saga-order-fulfillment",  // router name
  *     "order",                    // input domain
+ *     "fulfillment",              // target domain
  *     new OrderSagaHandler()      // handler
  * );
  *
  * // Get subscriptions for registration
  * List<Map.Entry<String, List<String>>> subs = router.subscriptions();
  *
- * // Prepare phase: get destinations needed
- * List<Cover> destinations = router.prepareDestinations(sourceEvents);
- *
- * // Execute phase: produce commands
+ * // Dispatch phase: produce commands
  * SagaResponse response = router.dispatch(sourceEvents, destinationBooks);
  * }</pre>
  */
@@ -39,6 +37,7 @@ public class SagaRouter {
 
     private final String name;
     private final String domain;
+    private final String targetDomain;
     private final SagaDomainHandler handler;
 
     /**
@@ -46,11 +45,13 @@ public class SagaRouter {
      *
      * @param name The router name
      * @param domain The input domain this saga listens to
+     * @param targetDomain The target domain where commands are sent
      * @param handler The domain handler
      */
-    public SagaRouter(String name, String domain, SagaDomainHandler handler) {
+    public SagaRouter(String name, String domain, String targetDomain, SagaDomainHandler handler) {
         this.name = name;
         this.domain = domain;
+        this.targetDomain = targetDomain;
         this.handler = handler;
     }
 
@@ -69,6 +70,13 @@ public class SagaRouter {
     }
 
     /**
+     * Get the target domain (where commands are sent).
+     */
+    public String getTargetDomain() {
+        return targetDomain;
+    }
+
+    /**
      * Get event types from the handler.
      */
     public List<String> getEventTypes() {
@@ -82,29 +90,6 @@ public class SagaRouter {
      */
     public List<Map.Entry<String, List<String>>> subscriptions() {
         return List.of(new AbstractMap.SimpleEntry<>(domain, handler.eventTypes()));
-    }
-
-    /**
-     * Get destinations needed for the given source events.
-     *
-     * <p>This is the prepare phase of the two-phase protocol.
-     *
-     * @param source The source event book (may be null)
-     * @return List of covers for destinations that need to be fetched
-     */
-    public List<Cover> prepareDestinations(EventBook source) {
-        if (source == null || source.getPagesList().isEmpty()) {
-            return Collections.emptyList();
-        }
-
-        // Get the last event page
-        EventPage eventPage = source.getPages(source.getPagesCount() - 1);
-        if (!eventPage.hasEvent()) {
-            return Collections.emptyList();
-        }
-
-        Any eventAny = eventPage.getEvent();
-        return handler.prepare(source, eventAny);
     }
 
     /**

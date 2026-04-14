@@ -34,7 +34,7 @@
  * <h3>Saga (single domain - domain in constructor)</h3>
  * <pre>{@code
  * SagaRouter router = new SagaRouter(
- *     "saga-order-fulfillment", "order", new OrderHandler());
+ *     "saga-order-fulfillment", "order", "fulfillment", new OrderHandler());
  * }</pre>
  *
  * <h3>Process Manager (multi-domain - fluent .domain())</h3>

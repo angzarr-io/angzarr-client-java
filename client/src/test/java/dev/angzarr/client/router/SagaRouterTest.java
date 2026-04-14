@@ -33,22 +33,6 @@ class SagaRouterTest {
         }
 
         @Override
-        public List<Cover> prepare(EventBook source, Any event) {
-            String typeUrl = event.getTypeUrl();
-            if (typeUrl.endsWith("OrderCompleted")) {
-                // Need to fetch fulfillment aggregate state
-                String rootId = source.hasCover() && source.getCover().hasRoot()
-                        ? source.getCover().getRoot().getValue().toStringUtf8()
-                        : "default";
-                return List.of(Cover.newBuilder()
-                        .setDomain("fulfillment")
-                        .setRoot(source.getCover().getRoot())
-                        .build());
-            }
-            return Collections.emptyList();
-        }
-
-        @Override
         public SagaHandlerResponse execute(EventBook source, Any event, List<EventBook> destinations)
                 throws CommandRejectedError {
             String typeUrl = event.getTypeUrl();
@@ -86,7 +70,7 @@ class SagaRouterTest {
 
         @BeforeEach
         void setUp() {
-            router = new SagaRouter("saga-order-fulfillment", "order", new TestSagaHandler());
+            router = new SagaRouter("saga-order-fulfillment", "order", "fulfillment", new TestSagaHandler());
         }
 
         @Test
@@ -116,56 +100,6 @@ class SagaRouterTest {
     }
 
     // =========================================================================
-    // Prepare Destinations Tests
-    // =========================================================================
-
-    @Nested
-    class PrepareDestinationsTests {
-
-        private SagaRouter router;
-
-        @BeforeEach
-        void setUp() {
-            router = new SagaRouter("saga-order-fulfillment", "order", new TestSagaHandler());
-        }
-
-        @Test
-        void prepareDestinations_null_source_returns_empty() {
-            List<Cover> destinations = router.prepareDestinations(null);
-
-            assertThat(destinations).isEmpty();
-        }
-
-        @Test
-        void prepareDestinations_empty_source_returns_empty() {
-            EventBook source = EventBook.getDefaultInstance();
-
-            List<Cover> destinations = router.prepareDestinations(source);
-
-            assertThat(destinations).isEmpty();
-        }
-
-        @Test
-        void prepareDestinations_for_OrderCompleted_returns_fulfillment_cover() {
-            EventBook source = makeEventBook("order", "OrderCompleted");
-
-            List<Cover> destinations = router.prepareDestinations(source);
-
-            assertThat(destinations).hasSize(1);
-            assertThat(destinations.get(0).getDomain()).isEqualTo("fulfillment");
-        }
-
-        @Test
-        void prepareDestinations_for_OrderCancelled_returns_empty() {
-            EventBook source = makeEventBook("order", "OrderCancelled");
-
-            List<Cover> destinations = router.prepareDestinations(source);
-
-            assertThat(destinations).isEmpty();
-        }
-    }
-
-    // =========================================================================
     // Dispatch Tests
     // =========================================================================
 
@@ -176,7 +110,7 @@ class SagaRouterTest {
 
         @BeforeEach
         void setUp() {
-            router = new SagaRouter("saga-order-fulfillment", "order", new TestSagaHandler());
+            router = new SagaRouter("saga-order-fulfillment", "order", "fulfillment", new TestSagaHandler());
         }
 
         @Test
@@ -268,18 +202,13 @@ class SagaRouterTest {
                 }
 
                 @Override
-                public List<Cover> prepare(EventBook source, Any event) {
-                    return Collections.emptyList();
-                }
-
-                @Override
                 public SagaHandlerResponse execute(EventBook source, Any event, List<EventBook> destinations)
                         throws CommandRejectedError {
                     throw CommandRejectedError.of("Cannot process this event");
                 }
             };
 
-            SagaRouter router = new SagaRouter("error-saga", "test", errorHandler);
+            SagaRouter router = new SagaRouter("error-saga", "test", "target", errorHandler);
             EventBook source = makeEventBook("test", "TestEvent");
 
             assertThatThrownBy(() -> router.dispatch(source, Collections.emptyList()))
