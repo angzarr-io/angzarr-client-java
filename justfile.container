@@ -24,6 +24,24 @@ coverage:
 publish:
     gradle publish
 
+# Format check (google-java-format)
+fmt:
+    #!/usr/bin/env bash
+    JAR="/tmp/google-java-format.jar"
+    if [ ! -f "$JAR" ]; then
+        curl -sL -o "$JAR" "https://github.com/google/google-java-format/releases/download/v1.25.2/google-java-format-1.25.2-all-deps.jar"
+    fi
+    find client/src -name "*.java" | xargs java -jar "$JAR" --dry-run --set-exit-if-changed
+
+# Auto-format code
+fmt-fix:
+    #!/usr/bin/env bash
+    JAR="/tmp/google-java-format.jar"
+    if [ ! -f "$JAR" ]; then
+        curl -sL -o "$JAR" "https://github.com/google/google-java-format/releases/download/v1.25.2/google-java-format-1.25.2-all-deps.jar"
+    fi
+    find client/src -name "*.java" | xargs java -jar "$JAR" --replace
+
 # Publish to local Maven repository for testing
 publish-local:
     gradle publishToMavenLocal
