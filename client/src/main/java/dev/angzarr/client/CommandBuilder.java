@@ -37,6 +37,7 @@ public class CommandBuilder {
     private final UUID root;
     private String correlationId;
     private int sequence = 0;
+    private MergeStrategy mergeStrategy = MergeStrategy.MERGE_COMMUTATIVE;
     private String typeUrl;
     private byte[] payload;
     private RuntimeException err;
@@ -100,6 +101,17 @@ public class CommandBuilder {
      * @param message The protobuf command message
      * @return This builder for chaining
      */
+    /**
+     * Set the merge strategy for conflict resolution.
+     *
+     * @param strategy The merge strategy
+     * @return This builder for chaining
+     */
+    public CommandBuilder withMergeStrategy(MergeStrategy strategy) {
+        this.mergeStrategy = strategy;
+        return this;
+    }
+
     public CommandBuilder withCommand(String typeUrl, Message message) {
         try {
             this.typeUrl = typeUrl;
@@ -148,6 +160,7 @@ public class CommandBuilder {
         CommandPage page = CommandPage.newBuilder()
             .setHeader(PageHeader.newBuilder().setSequence(sequence).build())
             .setCommand(commandAny)
+            .setMergeStrategy(mergeStrategy)
             .build();
 
         return CommandBook.newBuilder()
