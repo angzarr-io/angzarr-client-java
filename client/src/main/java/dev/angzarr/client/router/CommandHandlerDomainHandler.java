@@ -86,6 +86,20 @@ public interface CommandHandlerDomainHandler<S> {
     }
 
     /**
+     * Handle injected facts and return the resulting EventBook.
+     *
+     * <p>Facts are always accepted (cannot be rejected). Override to emit
+     * additional events or augment facts. Default: pass-through.
+     *
+     * @param facts The injected facts
+     * @param state The current state
+     * @return The resulting event book (original facts + any additional events)
+     */
+    default EventBook handleFact(EventBook facts, S state) {
+        return facts;
+    }
+
+    /**
      * Handle a command and return resulting events.
      *
      * <p>The handler should dispatch internally based on {@code payload.getTypeUrl()}.
