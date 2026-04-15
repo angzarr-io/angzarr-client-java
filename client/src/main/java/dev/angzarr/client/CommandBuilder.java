@@ -8,6 +8,7 @@ import dev.angzarr.CommandResponse;
 import dev.angzarr.Cover;
 import dev.angzarr.MergeStrategy;
 import dev.angzarr.PageHeader;
+import dev.angzarr.SyncMode;
 
 import java.util.UUID;
 
@@ -38,6 +39,7 @@ public class CommandBuilder {
     private final UUID root;
     private String correlationId;
     private int sequence = 0;
+    private boolean sequenceSet = false;
     private MergeStrategy mergeStrategy = MergeStrategy.MERGE_COMMUTATIVE;
     private String typeUrl;
     private byte[] payload;
@@ -92,6 +94,7 @@ public class CommandBuilder {
      */
     public CommandBuilder withSequence(int seq) {
         this.sequence = seq;
+        this.sequenceSet = true;
         return this;
     }
 
@@ -139,6 +142,9 @@ public class CommandBuilder {
         if (payload == null) {
             throw new Errors.InvalidArgumentError("command payload not set");
         }
+        if (!sequenceSet) {
+            throw new Errors.InvalidArgumentError("sequence not set (call withSequence)");
+        }
 
         String corrId = correlationId;
         if (corrId == null || corrId.isEmpty()) {
@@ -180,5 +186,18 @@ public class CommandBuilder {
     public CommandResponse execute() {
         CommandBook cmd = build();
         return client.handle(cmd);
+    }
+
+    /**
+     * Build and execute the command with the specified sync mode.
+     *
+     * @param syncMode The synchronization mode
+     * @return The command response
+     * @throws Errors.InvalidArgumentError if required fields are missing
+     * @throws Errors.GrpcError if the gRPC call fails
+     */
+    public CommandResponse execute(SyncMode syncMode) {
+        CommandBook cmd = build();
+        return client.handle(cmd, syncMode);
     }
 }

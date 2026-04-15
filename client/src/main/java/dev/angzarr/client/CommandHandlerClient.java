@@ -54,12 +54,19 @@ public class CommandHandlerClient implements AutoCloseable {
      * @throws Errors.ConnectionError if connection fails
      */
     public static CommandHandlerClient connect(String endpoint) {
+        return connect(endpoint, ExponentialBackoffRetry.defaultPolicy());
+    }
+
+    public static CommandHandlerClient connect(String endpoint, RetryPolicy retry) {
         try {
-            ManagedChannel channel = ManagedChannelBuilder
-                .forTarget(formatEndpoint(endpoint))
-                .usePlaintext()
-                .build();
-            return new CommandHandlerClient(channel, true);
+            final ManagedChannel[] channel = new ManagedChannel[1];
+            retry.execute(() -> {
+                channel[0] = ManagedChannelBuilder
+                    .forTarget(formatEndpoint(endpoint))
+                    .usePlaintext()
+                    .build();
+            });
+            return new CommandHandlerClient(channel[0], true);
         } catch (Exception e) {
             throw new Errors.ConnectionError("Failed to connect to " + endpoint, e);
         }
@@ -121,6 +128,7 @@ public class CommandHandlerClient implements AutoCloseable {
             CommandRequest request = CommandRequest.newBuilder()
                 .setCommand(command)
                 .setSyncMode(syncMode)
+                .setCascadeErrorMode(dev.angzarr.CascadeErrorMode.CASCADE_ERROR_FAIL_FAST)
                 .build();
             return stub.handleCommand(request);
         } catch (StatusRuntimeException e) {
