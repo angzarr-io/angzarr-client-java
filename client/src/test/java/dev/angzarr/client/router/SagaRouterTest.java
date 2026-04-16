@@ -162,15 +162,13 @@ class SagaRouterTest {
         @Test
         void dispatch_uses_destination_sequence() throws Exception {
             EventBook source = makeEventBook("order", "OrderCompleted");
-            // Destination has 3 prior events
+            // Destination has 3 prior events — set next_sequence on proto
             List<EventBook> destinations = List.of(
                     EventBook.newBuilder()
                             .setCover(Cover.newBuilder()
                                     .setDomain("fulfillment")
                                     .build())
-                            .addPages(EventPage.getDefaultInstance())
-                            .addPages(EventPage.getDefaultInstance())
-                            .addPages(EventPage.getDefaultInstance())
+                            .setNextSequence(3)
                             .build());
 
             SagaResponse response = router.dispatch(source, destinations);
