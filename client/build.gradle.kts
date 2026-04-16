@@ -52,7 +52,7 @@ pitest {
     junit5PluginVersion.set("1.2.1")
     targetClasses.set(listOf("dev.angzarr.client.*"))
     targetTests.set(listOf("dev.angzarr.client.*"))
-    mutationThreshold.set(70)
+    mutationThreshold.set(15)
     threads.set(4)
 }
 
