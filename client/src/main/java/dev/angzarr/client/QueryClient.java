@@ -104,7 +104,7 @@ public class QueryClient implements AutoCloseable {
         try {
             return stub.getEventBook(query);
         } catch (StatusRuntimeException e) {
-            throw new Errors.GrpcError(e.getMessage(), e.getStatus().getCode());
+            throw new Errors.GrpcError(e.getMessage(), e.getStatus().getCode(), e);
         }
     }
 
@@ -124,7 +124,7 @@ public class QueryClient implements AutoCloseable {
             }
             return events;
         } catch (StatusRuntimeException e) {
-            throw new Errors.GrpcError(e.getMessage(), e.getStatus().getCode());
+            throw new Errors.GrpcError(e.getMessage(), e.getStatus().getCode(), e);
         }
     }
 

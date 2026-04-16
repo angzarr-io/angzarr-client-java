@@ -132,7 +132,7 @@ public class CommandHandlerClient implements AutoCloseable {
                 .build();
             return stub.handleCommand(request);
         } catch (StatusRuntimeException e) {
-            throw new Errors.GrpcError(e.getMessage(), e.getStatus().getCode());
+            throw new Errors.GrpcError(e.getMessage(), e.getStatus().getCode(), e);
         }
     }
 
@@ -150,7 +150,7 @@ public class CommandHandlerClient implements AutoCloseable {
         try {
             return stub.handleCommand(request);
         } catch (StatusRuntimeException e) {
-            throw new Errors.GrpcError(e.getMessage(), e.getStatus().getCode());
+            throw new Errors.GrpcError(e.getMessage(), e.getStatus().getCode(), e);
         }
     }
 
@@ -172,7 +172,7 @@ public class CommandHandlerClient implements AutoCloseable {
         try {
             return stub.handleSyncSpeculative(request);
         } catch (StatusRuntimeException e) {
-            throw new Errors.GrpcError(e.getMessage(), e.getStatus().getCode());
+            throw new Errors.GrpcError(e.getMessage(), e.getStatus().getCode(), e);
         }
     }
 

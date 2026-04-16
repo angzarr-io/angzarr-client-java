@@ -2,6 +2,7 @@ package dev.angzarr.client.router;
 
 import com.google.protobuf.Any;
 import dev.angzarr.*;
+import dev.angzarr.client.Destinations;
 import dev.angzarr.client.compensation.RejectionHandlerResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -51,7 +52,7 @@ class ProcessManagerRouterTest {
 
         @Override
         public ProcessManagerResponse handle(
-                EventBook trigger, TestPmState state, Any event, List<EventBook> destinations)
+                EventBook trigger, TestPmState state, Any event, Destinations destinations)
                 throws CommandRejectedError {
             if (event.getTypeUrl().endsWith("OrderCreated")) {
                 // Issue command to inventory and emit PM event
@@ -94,7 +95,7 @@ class ProcessManagerRouterTest {
 
         @Override
         public ProcessManagerResponse handle(
-                EventBook trigger, TestPmState state, Any event, List<EventBook> destinations)
+                EventBook trigger, TestPmState state, Any event, Destinations destinations)
                 throws CommandRejectedError {
             if (event.getTypeUrl().endsWith("StockReserved")) {
                 // PM transition - emit process event only
@@ -343,7 +344,7 @@ class ProcessManagerRouterTest {
 
                 @Override
                 public ProcessManagerResponse handle(
-                        EventBook trigger, TestPmState state, Any event, List<EventBook> destinations) {
+                        EventBook trigger, TestPmState state, Any event, Destinations destinations) {
                     return ProcessManagerResponse.empty();
                 }
 

@@ -14,6 +14,7 @@ import java.lang.reflect.Method;
 import java.util.*;
 import java.util.function.BiFunction;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * Base class for sagas using annotation-based handler registration.
@@ -91,7 +92,7 @@ public abstract class Saga {
     /**
      * Dispatch all events to handlers.
      */
-    public SagaHandlerResponse dispatch(EventBook book, List<EventBook> destinations) {
+    public SagaHandlerResponse dispatch(EventBook book, Destinations destinations) {
         String correlationId = book.hasCover() ? book.getCover().getCorrelationId() : "";
 
         // Clear accumulated events from any prior dispatch
@@ -102,7 +103,7 @@ public abstract class Saga {
             if (!page.hasEvent()) continue;
 
             // Check for rejection notification
-            if (Helpers.typeUrlMatches(page.getEvent().getTypeUrl(), "Notification")) {
+            if (Helpers.typeUrlMatches(page.getEvent().getTypeUrl(), "angzarr.Notification")) {
                 try {
                     Notification notification = page.getEvent().unpack(Notification.class);
                     RejectionHandlerResponse response = dispatchRejection(notification, correlationId);
@@ -219,7 +220,7 @@ public abstract class Saga {
             Handles handles = method.getAnnotation(Handles.class);
             if (handles != null) {
                 Class<? extends Message> eventType = handles.value();
-                String suffix = eventType.getSimpleName();
+                String suffix = Helpers.protoFullName(eventType);
                 method.setAccessible(true);
 
                 handlers.put(suffix, (eventAny, correlationId) -> {
@@ -237,7 +238,7 @@ public abstract class Saga {
             Prepares prepares = method.getAnnotation(Prepares.class);
             if (prepares != null) {
                 Class<? extends Message> eventType = prepares.value();
-                String suffix = eventType.getSimpleName();
+                String suffix = Helpers.protoFullName(eventType);
                 method.setAccessible(true);
 
                 prepareHandlers.put(suffix, (eventAny) -> {

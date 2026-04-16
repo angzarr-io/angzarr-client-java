@@ -89,7 +89,7 @@ public class UpcasterRouter {
             boolean transformed = false;
 
             for (UpcasterEntry entry : handlers) {
-                if (typeUrl.endsWith(entry.suffix)) {
+                if (Helpers.typeUrlMatches(typeUrl, entry.suffix)) {
                     Any newEvent = entry.handler.apply(event);
                     EventPage.Builder newPageBuilder = EventPage.newBuilder()
                             .setEvent(newEvent)

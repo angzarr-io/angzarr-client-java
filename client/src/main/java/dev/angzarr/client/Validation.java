@@ -40,13 +40,13 @@ public final class Validation {
      */
     public static void requirePositive(long value, String fieldName) {
         if (value <= 0) {
-            throw new Errors.CommandRejectedError(fieldName + " must be positive");
+            throw Errors.CommandRejectedError.invalidArgument(fieldName + " must be positive");
         }
     }
 
     public static void requirePositive(double value, String fieldName) {
         if (value <= 0) {
-            throw new Errors.CommandRejectedError(fieldName + " must be positive");
+            throw Errors.CommandRejectedError.invalidArgument(fieldName + " must be positive");
         }
     }
 
@@ -55,13 +55,13 @@ public final class Validation {
      */
     public static void requireNonNegative(long value, String fieldName) {
         if (value < 0) {
-            throw new Errors.CommandRejectedError(fieldName + " must be non-negative");
+            throw Errors.CommandRejectedError.invalidArgument(fieldName + " must be non-negative");
         }
     }
 
     public static void requireNonNegative(double value, String fieldName) {
         if (value < 0) {
-            throw new Errors.CommandRejectedError(fieldName + " must be non-negative");
+            throw Errors.CommandRejectedError.invalidArgument(fieldName + " must be non-negative");
         }
     }
 
@@ -70,7 +70,7 @@ public final class Validation {
      */
     public static void requireNotEmpty(String value, String fieldName) {
         if (value == null || value.isEmpty()) {
-            throw new Errors.CommandRejectedError(fieldName + " must not be empty");
+            throw Errors.CommandRejectedError.invalidArgument(fieldName + " must not be empty");
         }
     }
 
@@ -79,7 +79,7 @@ public final class Validation {
      */
     public static void requireNotEmpty(Collection<?> collection, String fieldName) {
         if (collection == null || collection.isEmpty()) {
-            throw new Errors.CommandRejectedError(fieldName + " must not be empty");
+            throw Errors.CommandRejectedError.invalidArgument(fieldName + " must not be empty");
         }
     }
 

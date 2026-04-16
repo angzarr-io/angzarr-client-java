@@ -105,7 +105,7 @@ public abstract class Projector {
             Projects projects = method.getAnnotation(Projects.class);
             if (projects != null) {
                 Class<? extends Message> eventType = projects.value();
-                String suffix = eventType.getSimpleName();
+                String suffix = Helpers.protoFullName(eventType);
                 method.setAccessible(true);
 
                 handlers.put(suffix, (eventAny) -> {

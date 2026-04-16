@@ -25,9 +25,9 @@ import java.util.List;
  *         for (EventPage page : events.getPagesList()) {
  *             if (!page.hasEvent()) continue;
  *             String typeUrl = page.getEvent().getTypeUrl();
- *             if (typeUrl.endsWith("PlayerRegistered")) {
+ *             if (Helpers.typeUrlMatches(typeUrl, "examples.player.PlayerRegistered")) {
  *                 // Update read model
- *             } else if (typeUrl.endsWith("FundsDeposited")) {
+ *             } else if (Helpers.typeUrlMatches(typeUrl, "examples.player.FundsDeposited")) {
  *                 // Update read model
  *             }
  *         }

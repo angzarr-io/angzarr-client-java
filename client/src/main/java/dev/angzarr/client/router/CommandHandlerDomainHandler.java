@@ -45,9 +45,9 @@ import java.util.List;
  *     public EventBook handle(CommandBook cmd, Any payload, PlayerState state, int seq)
  *             throws CommandRejectedError {
  *         String typeUrl = payload.getTypeUrl();
- *         if (typeUrl.endsWith("RegisterPlayer")) {
+ *         if (Helpers.typeUrlMatches(typeUrl, "examples.player.RegisterPlayer")) {
  *             return handleRegister(cmd, payload, state, seq);
- *         } else if (typeUrl.endsWith("DepositFunds")) {
+ *         } else if (Helpers.typeUrlMatches(typeUrl, "examples.player.DepositFunds")) {
  *             return handleDeposit(cmd, payload, state, seq);
  *         }
  *         throw CommandRejectedError.of("Unknown command: " + typeUrl);

@@ -69,12 +69,12 @@ public abstract class CommandHandler<S> {
             for (var method : type.getMethods()) {
                 var handles = method.getAnnotation(Handles.class);
                 if (handles != null) {
-                    dispatch.put(handles.value().getSimpleName(), new MethodInfo(method, handles.value()));
+                    dispatch.put(Helpers.protoFullName(handles.value()), new MethodInfo(method, handles.value()));
                 }
 
                 var applies = method.getAnnotation(Applies.class);
                 if (applies != null) {
-                    appliers.put(applies.value().getSimpleName(), new MethodInfo(method, applies.value()));
+                    appliers.put(Helpers.protoFullName(applies.value()), new MethodInfo(method, applies.value()));
                 }
 
                 var rejected = method.getAnnotation(Rejected.class);
@@ -104,7 +104,7 @@ public abstract class CommandHandler<S> {
             var commandAny = request.getCommand().getPages(0).getCommand();
 
             // Check for Notification
-            if (commandAny.getTypeUrl().endsWith("Notification")) {
+            if (Helpers.typeUrlMatches(commandAny.getTypeUrl(), "angzarr.Notification")) {
                 var notification = commandAny.unpack(Notification.class);
                 return handler.handleRevocation(notification);
             }
@@ -124,7 +124,7 @@ public abstract class CommandHandler<S> {
         var dispatch = dispatchTables.get(getClass());
 
         for (var entry : dispatch.entrySet()) {
-            if (typeUrl.endsWith(entry.getKey())) {
+            if (Helpers.typeUrlMatches(typeUrl, entry.getKey())) {
                 try {
                     var cmd = commandAny.unpack(entry.getValue().messageType());
                     var result = entry.getValue().method().invoke(this, cmd);
@@ -164,7 +164,7 @@ public abstract class CommandHandler<S> {
         var rejectionTable = rejectionTables.get(getClass());
         for (var entry : rejectionTable.entrySet()) {
             var parts = entry.getKey().split("/");
-            if (parts[0].equals(domain) && commandSuffix.endsWith(parts[1])) {
+            if (parts[0].equals(domain) && commandSuffix.equals(parts[1])) {
                 try {
                     getState(); // Ensure state is built
                     var result = entry.getValue().invoke(this, notification);
@@ -255,7 +255,7 @@ public abstract class CommandHandler<S> {
     protected void applyEvent(S state, Any eventAny) {
         var appliers = applierTables.get(getClass());
         for (var entry : appliers.entrySet()) {
-            if (eventAny.getTypeUrl().endsWith(entry.getKey())) {
+            if (Helpers.typeUrlMatches(eventAny.getTypeUrl(), entry.getKey())) {
                 try {
                     var event = eventAny.unpack(entry.getValue().messageType());
                     entry.getValue().method().invoke(this, state, event);
@@ -288,7 +288,7 @@ public abstract class CommandHandler<S> {
         var dispatch = dispatchTables.get(getClass());
 
         for (var entry : dispatch.entrySet()) {
-            if (typeUrl.endsWith(entry.getKey())) {
+            if (Helpers.typeUrlMatches(typeUrl, entry.getKey())) {
                 try {
                     getState(); // Ensure state is built
                     var result = entry.getValue().method().invoke(this, command);

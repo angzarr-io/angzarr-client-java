@@ -149,7 +149,7 @@ public class CommandRouter<S> {
         try {
             Message instance = (Message) messageClass.getDeclaredMethod("getDefaultInstance").invoke(null);
             String fullName = instance.getDescriptorForType().getFullName();
-            return typeUrl.endsWith(fullName);
+            return Helpers.typeUrlMatches(typeUrl, fullName);
         } catch (Exception e) {
             return false;
         }

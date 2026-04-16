@@ -3,6 +3,7 @@ package dev.angzarr.client.router;
 import com.google.protobuf.Any;
 import dev.angzarr.EventBook;
 import dev.angzarr.Notification;
+import dev.angzarr.client.Destinations;
 import dev.angzarr.client.compensation.RejectionHandlerResponse;
 
 import java.util.List;
@@ -23,12 +24,12 @@ import java.util.List;
  *     }
  *
  *     @Override
- *     public SagaHandlerResponse execute(EventBook source, Any event, List<EventBook> destinations)
+ *     public SagaHandlerResponse execute(EventBook source, Any event, Destinations destinations)
  *             throws CommandRejectedError {
  *         String typeUrl = event.getTypeUrl();
- *         if (typeUrl.endsWith("OrderCompleted")) {
+ *         if (Helpers.typeUrlMatches(typeUrl, "examples.order.OrderCompleted")) {
  *             return handleCompleted(source, event, destinations);
- *         } else if (typeUrl.endsWith("OrderCancelled")) {
+ *         } else if (Helpers.typeUrlMatches(typeUrl, "examples.order.OrderCancelled")) {
  *             return handleCancelled(source, event, destinations);
  *         }
  *         return SagaHandlerResponse.empty();
@@ -55,11 +56,11 @@ public interface SagaDomainHandler {
      *
      * @param source The source event book
      * @param event The triggering event as an Any
-     * @param destinations The fetched destination event books
+     * @param destinations The destination sequences for command stamping
      * @return Response containing commands and events
      * @throws CommandRejectedError if the event cannot be processed
      */
-    SagaHandlerResponse execute(EventBook source, Any event, List<EventBook> destinations)
+    SagaHandlerResponse execute(EventBook source, Any event, Destinations destinations)
             throws CommandRejectedError;
 
     /**

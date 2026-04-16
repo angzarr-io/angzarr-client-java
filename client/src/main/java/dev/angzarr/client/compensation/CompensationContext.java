@@ -67,7 +67,8 @@ public class CompensationContext {
                 .unpack(RejectionNotification.class);
             return new CompensationContext(rejection);
         } catch (InvalidProtocolBufferException e) {
-            throw new RuntimeException("Failed to unpack RejectionNotification", e);
+            // Payload doesn't contain a RejectionNotification — return safe defaults
+            return new CompensationContext(RejectionNotification.getDefaultInstance());
         }
     }
 

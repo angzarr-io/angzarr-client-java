@@ -3,11 +3,13 @@ package dev.angzarr.client.router;
 import com.google.protobuf.Any;
 import com.google.protobuf.InvalidProtocolBufferException;
 import dev.angzarr.*;
+import dev.angzarr.client.Destinations;
 import dev.angzarr.client.Helpers;
 import dev.angzarr.client.compensation.RejectionHandlerResponse;
 
 import java.util.AbstractMap;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -117,12 +119,22 @@ public class SagaRouter {
         Any eventAny = eventPage.getEvent();
 
         // Check for Notification
-        if (eventAny.getTypeUrl().endsWith("Notification")) {
+        if (Helpers.typeUrlMatches(eventAny.getTypeUrl(), "angzarr.Notification")) {
             return dispatchNotification(eventAny);
         }
 
+        // Convert destination EventBooks to Destinations (domain -> next sequence)
+        Map<String, Integer> sequenceMap = new HashMap<>();
+        for (EventBook book : destinations) {
+            String domain = Helpers.domain(book);
+            if (!domain.isEmpty()) {
+                sequenceMap.put(domain, Helpers.nextSequence(book));
+            }
+        }
+        Destinations dest = new Destinations(sequenceMap);
+
         try {
-            SagaHandlerResponse response = handler.execute(source, eventAny, destinations);
+            SagaHandlerResponse response = handler.execute(source, eventAny, dest);
 
             return SagaResponse.newBuilder()
                     .addAllCommands(response.getCommands())

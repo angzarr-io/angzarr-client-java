@@ -4,6 +4,7 @@ import com.google.protobuf.Any;
 import dev.angzarr.Cover;
 import dev.angzarr.EventBook;
 import dev.angzarr.Notification;
+import dev.angzarr.client.Destinations;
 import dev.angzarr.client.compensation.RejectionHandlerResponse;
 
 import java.util.List;
@@ -35,7 +36,7 @@ import java.util.List;
  *             EventBook trigger,
  *             HandFlowState state,
  *             Any event,
- *             List<EventBook> destinations) throws CommandRejectedError {
+ *             Destinations destinations) throws CommandRejectedError {
  *         // Process event, emit commands and/or PM events
  *         return ProcessManagerResponse.empty();
  *     }
@@ -69,7 +70,7 @@ public interface ProcessManagerDomainHandler<S> {
      * @param trigger The triggering event book
      * @param state The current PM state
      * @param event The triggering event as an Any
-     * @param destinations The fetched destination event books
+     * @param destinations The destination sequences for command stamping
      * @return Response containing commands and/or process events
      * @throws CommandRejectedError if the event cannot be processed
      */
@@ -77,7 +78,7 @@ public interface ProcessManagerDomainHandler<S> {
             EventBook trigger,
             S state,
             Any event,
-            List<EventBook> destinations) throws CommandRejectedError;
+            Destinations destinations) throws CommandRejectedError;
 
     /**
      * Handle a rejection notification.

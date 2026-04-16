@@ -20,7 +20,7 @@ public class StateRouter<S> {
     }
 
     public <E extends Message> StateRouter<S> on(Class<E> eventType, java.util.function.BiConsumer<S, E> applier) {
-        var suffix = eventType.getSimpleName();
+        var suffix = Helpers.protoFullName(eventType);
         appliers.put(suffix, (state, any) -> {
             try {
                 @SuppressWarnings("unchecked")
@@ -45,7 +45,7 @@ public class StateRouter<S> {
 
     private void applyEvent(S state, Any eventAny) {
         for (var entry : appliers.entrySet()) {
-            if (eventAny.getTypeUrl().endsWith(entry.getKey())) {
+            if (Helpers.typeUrlMatches(eventAny.getTypeUrl(), entry.getKey())) {
                 entry.getValue().apply(state, eventAny);
                 return;
             }

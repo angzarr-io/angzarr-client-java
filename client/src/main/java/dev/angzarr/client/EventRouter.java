@@ -240,7 +240,7 @@ public class EventRouter {
         try {
             Message instance = (Message) eventClass.getDeclaredMethod("getDefaultInstance").invoke(null);
             String fullName = instance.getDescriptorForType().getFullName();
-            return typeUrl.endsWith(fullName);
+            return Helpers.typeUrlMatches(typeUrl, fullName);
         } catch (Exception e) {
             return false;
         }

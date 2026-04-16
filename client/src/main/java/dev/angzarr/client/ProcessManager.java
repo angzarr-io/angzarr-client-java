@@ -132,7 +132,7 @@ public abstract class ProcessManager<S extends Message> {
             if (!page.hasEvent()) continue;
 
             // Check for rejection notification
-            if (Helpers.typeUrlMatches(page.getEvent().getTypeUrl(), "Notification")) {
+            if (Helpers.typeUrlMatches(page.getEvent().getTypeUrl(), "angzarr.Notification")) {
                 try {
                     Notification notification = page.getEvent().unpack(Notification.class);
                     RejectionHandlerResponse response = dispatchRejection(notification);
@@ -295,7 +295,7 @@ public abstract class ProcessManager<S extends Message> {
             Handles handles = method.getAnnotation(Handles.class);
             if (handles != null) {
                 Class<? extends Message> eventType = handles.value();
-                String suffix = eventType.getSimpleName();
+                String suffix = Helpers.protoFullName(eventType);
                 method.setAccessible(true);
 
                 handlers.put(suffix, (eventAny, correlationId) -> {
@@ -313,7 +313,7 @@ public abstract class ProcessManager<S extends Message> {
             Applies applies = method.getAnnotation(Applies.class);
             if (applies != null) {
                 Class<? extends Message> eventType = applies.value();
-                String suffix = eventType.getSimpleName();
+                String suffix = Helpers.protoFullName(eventType);
                 method.setAccessible(true);
 
                 appliers.put(suffix, (currentState, eventAny) -> {
@@ -355,7 +355,7 @@ public abstract class ProcessManager<S extends Message> {
             Prepares prepares = method.getAnnotation(Prepares.class);
             if (prepares != null) {
                 Class<? extends Message> eventType = prepares.value();
-                String suffix = eventType.getSimpleName();
+                String suffix = Helpers.protoFullName(eventType);
                 method.setAccessible(true);
 
                 prepareHandlers.put(suffix, (eventAny) -> {

@@ -2,6 +2,7 @@ package dev.angzarr.client.router;
 
 import com.google.protobuf.Any;
 import dev.angzarr.*;
+import dev.angzarr.client.Destinations;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -33,14 +34,14 @@ class SagaRouterTest {
         }
 
         @Override
-        public SagaHandlerResponse execute(EventBook source, Any event, List<EventBook> destinations)
+        public SagaHandlerResponse execute(EventBook source, Any event, Destinations destinations)
                 throws CommandRejectedError {
             String typeUrl = event.getTypeUrl();
             if (typeUrl.endsWith("OrderCompleted")) {
                 // Get destination sequence for optimistic concurrency
-                int destSeq = destinations.isEmpty() ? 0 : destinations.get(0).getPagesCount();
+                int destSeq = destinations.sequenceFor("fulfillment").orElse(0);
 
-                return SagaHandlerResponse.withCommands(List.of(CommandBook.newBuilder()
+                CommandBook cmd = CommandBook.newBuilder()
                         .setCover(Cover.newBuilder()
                                 .setDomain("fulfillment")
                                 .setRoot(source.getCover().getRoot())
@@ -51,7 +52,9 @@ class SagaRouterTest {
                                         .setTypeUrl("type.googleapis.com/test.StartFulfillment")
                                         .build())
                                 .build())
-                        .build()));
+                        .build();
+
+                return SagaHandlerResponse.withCommands(List.of(cmd));
             } else if (typeUrl.endsWith("OrderCancelled")) {
                 return SagaHandlerResponse.empty();
             }
@@ -202,7 +205,7 @@ class SagaRouterTest {
                 }
 
                 @Override
-                public SagaHandlerResponse execute(EventBook source, Any event, List<EventBook> destinations)
+                public SagaHandlerResponse execute(EventBook source, Any event, Destinations destinations)
                         throws CommandRejectedError {
                     throw CommandRejectedError.of("Cannot process this event");
                 }

@@ -104,9 +104,9 @@ public final class Compensation {
      * <p>Use when the PM doesn't have custom compensation logic.
      *
      * @param reason Human-readable explanation for the delegation.
-     * @return RevocationResponse - no PM events, delegate to framework.
+     * @return PMRevocationResponse with no PM events, delegate to framework.
      */
-    public static RevocationResponse pmDelegateToFramework(String reason) {
+    public static PMRevocationResponse pmDelegateToFramework(String reason) {
         return pmDelegateToFramework(reason, true);
     }
 
@@ -115,13 +115,16 @@ public final class Compensation {
      *
      * @param reason Human-readable explanation for the delegation.
      * @param emitSystemEvent Emit SagaCompensationFailed to fallback domain.
-     * @return RevocationResponse - no PM events, delegate to framework.
+     * @return PMRevocationResponse with no PM events, delegate to framework.
      */
-    public static RevocationResponse pmDelegateToFramework(String reason, boolean emitSystemEvent) {
-        return RevocationResponse.newBuilder()
-            .setEmitSystemRevocation(emitSystemEvent)
-            .setReason(reason)
-            .build();
+    public static PMRevocationResponse pmDelegateToFramework(String reason, boolean emitSystemEvent) {
+        return new PMRevocationResponse(
+            null,
+            RevocationResponse.newBuilder()
+                .setEmitSystemRevocation(emitSystemEvent)
+                .setReason(reason)
+                .build()
+        );
     }
 
     /**

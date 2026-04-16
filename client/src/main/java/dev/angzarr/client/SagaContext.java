@@ -25,7 +25,11 @@ import java.util.Map;
  *     return commands;
  * }
  * }</pre>
+ *
+ * @deprecated Use {@link Destinations} instead. Destinations provides sequence-only
+ * access aligned with the principle that sagas are translators, not decision makers.
  */
+@Deprecated
 public class SagaContext {
     private final Map<String, EventBook> destinations;
 

@@ -44,12 +44,14 @@ public class DomainClient implements AutoCloseable {
 
     private final CommandHandlerClient commandHandler;
     private final QueryClient query;
+    private final SpeculativeClient speculative;
     private final ManagedChannel channel;
 
-    private DomainClient(ManagedChannel channel, CommandHandlerClient commandHandler, QueryClient query) {
+    private DomainClient(ManagedChannel channel, CommandHandlerClient commandHandler, QueryClient query, SpeculativeClient speculative) {
         this.channel = channel;
         this.commandHandler = commandHandler;
         this.query = query;
+        this.speculative = speculative;
     }
 
     /**
@@ -68,7 +70,8 @@ public class DomainClient implements AutoCloseable {
             return new DomainClient(
                 channel,
                 CommandHandlerClient.fromChannel(channel),
-                QueryClient.fromChannel(channel)
+                QueryClient.fromChannel(channel),
+                SpeculativeClient.fromChannel(channel)
             );
         } catch (Exception e) {
             throw new Errors.ConnectionError("Failed to connect to " + endpoint, e);
@@ -100,7 +103,8 @@ public class DomainClient implements AutoCloseable {
         return new DomainClient(
             null, // Don't own the channel
             CommandHandlerClient.fromChannel(channel),
-            QueryClient.fromChannel(channel)
+            QueryClient.fromChannel(channel),
+            SpeculativeClient.fromChannel(channel)
         );
     }
 
@@ -120,6 +124,15 @@ public class DomainClient implements AutoCloseable {
      */
     public QueryClient getQuery() {
         return query;
+    }
+
+    /**
+     * Get the speculative client for what-if scenarios.
+     *
+     * @return The underlying SpeculativeClient
+     */
+    public SpeculativeClient getSpeculative() {
+        return speculative;
     }
 
     /**

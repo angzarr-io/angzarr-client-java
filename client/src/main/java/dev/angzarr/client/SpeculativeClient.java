@@ -100,7 +100,7 @@ public class SpeculativeClient implements AutoCloseable {
         try {
             return commandHandlerStub.handleSyncSpeculative(request);
         } catch (StatusRuntimeException e) {
-            throw new Errors.GrpcError(e.getMessage(), e.getStatus().getCode());
+            throw new Errors.GrpcError(e.getMessage(), e.getStatus().getCode(), e);
         }
     }
 
@@ -115,7 +115,7 @@ public class SpeculativeClient implements AutoCloseable {
         try {
             return projectorStub.handleSpeculative(request);
         } catch (StatusRuntimeException e) {
-            throw new Errors.GrpcError(e.getMessage(), e.getStatus().getCode());
+            throw new Errors.GrpcError(e.getMessage(), e.getStatus().getCode(), e);
         }
     }
 
@@ -130,7 +130,7 @@ public class SpeculativeClient implements AutoCloseable {
         try {
             return sagaStub.executeSpeculative(request);
         } catch (StatusRuntimeException e) {
-            throw new Errors.GrpcError(e.getMessage(), e.getStatus().getCode());
+            throw new Errors.GrpcError(e.getMessage(), e.getStatus().getCode(), e);
         }
     }
 
@@ -145,7 +145,7 @@ public class SpeculativeClient implements AutoCloseable {
         try {
             return pmStub.handleSpeculative(request);
         } catch (StatusRuntimeException e) {
-            throw new Errors.GrpcError(e.getMessage(), e.getStatus().getCode());
+            throw new Errors.GrpcError(e.getMessage(), e.getStatus().getCode(), e);
         }
     }
 

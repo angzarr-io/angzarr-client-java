@@ -43,7 +43,7 @@ public class CloudEventsRouter {
      * Register a handler for an event type.
      */
     public <T extends Message> CloudEventsRouter on(Class<T> eventType, Function<T, CloudEvent> handler) {
-        String suffix = eventType.getSimpleName();
+        String suffix = Helpers.protoFullName(eventType);
         handlers.put(suffix, new Handler<>(eventType, handler));
         return this;
     }

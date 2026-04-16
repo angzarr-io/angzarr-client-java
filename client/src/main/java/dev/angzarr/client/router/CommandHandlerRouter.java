@@ -121,7 +121,7 @@ public class CommandHandlerRouter<S> {
         String typeUrl = commandAny.getTypeUrl();
 
         // Check for Notification (rejection/compensation)
-        if (typeUrl.endsWith("Notification")) {
+        if (Helpers.typeUrlMatches(typeUrl, "angzarr.Notification")) {
             return dispatchNotification(commandAny, state);
         }
 

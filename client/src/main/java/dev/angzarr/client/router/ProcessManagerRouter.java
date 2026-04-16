@@ -3,6 +3,7 @@ package dev.angzarr.client.router;
 import com.google.protobuf.Any;
 import com.google.protobuf.InvalidProtocolBufferException;
 import dev.angzarr.*;
+import dev.angzarr.client.Destinations;
 import dev.angzarr.client.Helpers;
 import dev.angzarr.client.compensation.RejectionHandlerResponse;
 
@@ -191,12 +192,22 @@ public class ProcessManagerRouter<S> {
         S state = processState != null ? rebuildState(processState) : rebuildFn.apply(null);
 
         // Check for Notification
-        if (eventAny.getTypeUrl().endsWith("Notification")) {
+        if (Helpers.typeUrlMatches(eventAny.getTypeUrl(), "angzarr.Notification")) {
             return dispatchNotification(handler, eventAny, state);
         }
 
+        // Convert destination EventBooks to Destinations (domain -> next sequence)
+        Map<String, Integer> sequenceMap = new HashMap<>();
+        for (EventBook book : destinations) {
+            String domain = Helpers.domain(book);
+            if (!domain.isEmpty()) {
+                sequenceMap.put(domain, Helpers.nextSequence(book));
+            }
+        }
+        Destinations dest = new Destinations(sequenceMap);
+
         try {
-            ProcessManagerResponse response = handler.handle(trigger, state, eventAny, destinations);
+            ProcessManagerResponse response = handler.handle(trigger, state, eventAny, dest);
 
             ProcessManagerHandleResponse.Builder builder = ProcessManagerHandleResponse.newBuilder()
                     .addAllCommands(response.getCommands());
