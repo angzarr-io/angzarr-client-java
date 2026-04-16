@@ -3,6 +3,7 @@ plugins {
     id("org.springframework.boot") version "3.2.0" apply false
     id("io.spring.dependency-management") version "1.1.4"
     `maven-publish`
+    id("info.solidsoft.pitest") version "1.15.0"
 }
 
 dependencyManagement {
@@ -45,6 +46,13 @@ dependencies {
 tasks.test {
     useJUnitPlatform()
     systemProperty("cucumber.junit-platform.naming-strategy", "long")
+}
+
+pitest {
+    targetClasses.set(listOf("dev.angzarr.client.*"))
+    targetTests.set(listOf("dev.angzarr.client.*"))
+    mutationThreshold.set(70)
+    threads.set(4)
 }
 
 // Copy only client library feature files to test resources (not examples/acceptance)
