@@ -1,202 +1,29 @@
 package dev.angzarr.client.router;
 
-import com.google.protobuf.Any;
-import com.google.protobuf.InvalidProtocolBufferException;
-import dev.angzarr.*;
-import dev.angzarr.client.Destinations;
-import dev.angzarr.client.Helpers;
-import dev.angzarr.client.compensation.RejectionHandlerResponse;
-
-import java.util.AbstractMap;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
- * Router for saga components (events -> commands, single domain, stateless).
+ * Runtime router for saga components.
  *
- * <p>Domain is set at construction time. No additional domain registration
- * is possible, enforcing single-domain constraint.
- *
- * <p>Example:
- * <pre>{@code
- * SagaRouter router = new SagaRouter(
- *     "saga-order-fulfillment",  // router name
- *     "order",                    // input domain
- *     "fulfillment",              // target domain
- *     new OrderSagaHandler()      // handler
- * );
- *
- * // Get subscriptions for registration
- * List<Map.Entry<String, List<String>>> subs = router.subscriptions();
- *
- * // Dispatch phase: produce commands
- * SagaResponse response = router.dispatch(sourceEvents, destinationBooks);
- * }</pre>
+ * <p>Produced exclusively by {@link Router#build()} when all registered handler classes carry
+ * {@link dev.angzarr.client.annotations.Saga @Saga}. Dispatch logic lands in R11.
  */
-public class SagaRouter {
+public final class SagaRouter implements Built {
 
     private final String name;
-    private final String domain;
-    private final String targetDomain;
-    private final SagaDomainHandler handler;
+    private final List<Registration<?>> registrations;
 
-    /**
-     * Create a new saga router.
-     *
-     * @param name The router name
-     * @param domain The input domain this saga listens to
-     * @param targetDomain The target domain where commands are sent
-     * @param handler The domain handler
-     */
-    public SagaRouter(String name, String domain, String targetDomain, SagaDomainHandler handler) {
+    SagaRouter(String name, List<Registration<?>> registrations) {
         this.name = name;
-        this.domain = domain;
-        this.targetDomain = targetDomain;
-        this.handler = handler;
+        this.registrations = registrations;
     }
 
-    /**
-     * Get the router name.
-     */
-    public String getName() {
+    @Override
+    public String name() {
         return name;
     }
 
-    /**
-     * Get the input domain.
-     */
-    public String getInputDomain() {
-        return domain;
-    }
-
-    /**
-     * Get the target domain (where commands are sent).
-     */
-    public String getTargetDomain() {
-        return targetDomain;
-    }
-
-    /**
-     * Get event types from the handler.
-     */
-    public List<String> getEventTypes() {
-        return handler.eventTypes();
-    }
-
-    /**
-     * Get subscriptions for this saga.
-     *
-     * @return List of (domain, event types) pairs
-     */
-    public List<Map.Entry<String, List<String>>> subscriptions() {
-        return List.of(new AbstractMap.SimpleEntry<>(domain, handler.eventTypes()));
-    }
-
-    /**
-     * Dispatch an event to the saga handler.
-     *
-     * <p>This is the execute phase of the two-phase protocol.
-     *
-     * @param source The source event book
-     * @param destinations The fetched destination event books
-     * @return The saga response containing commands and events
-     * @throws RouterException if dispatch fails
-     */
-    public SagaResponse dispatch(EventBook source, List<EventBook> destinations)
-            throws RouterException {
-        if (source == null || source.getPagesList().isEmpty()) {
-            throw new RouterException("Source event book has no events");
-        }
-
-        // Get the last event page
-        EventPage eventPage = source.getPages(source.getPagesCount() - 1);
-        if (!eventPage.hasEvent()) {
-            throw new RouterException("Missing event payload");
-        }
-
-        Any eventAny = eventPage.getEvent();
-
-        // Check for Notification
-        if (Helpers.typeUrlMatches(eventAny.getTypeUrl(), "angzarr.Notification")) {
-            return dispatchNotification(eventAny);
-        }
-
-        // Convert destination EventBooks to Destinations (domain -> next sequence)
-        Map<String, Integer> sequenceMap = new HashMap<>();
-        for (EventBook book : destinations) {
-            String domain = Helpers.domain(book);
-            if (!domain.isEmpty()) {
-                sequenceMap.put(domain, Helpers.nextSequence(book));
-            }
-        }
-        Destinations dest = new Destinations(sequenceMap);
-
-        try {
-            SagaHandlerResponse response = handler.execute(source, eventAny, dest);
-
-            return SagaResponse.newBuilder()
-                    .addAllCommands(response.getCommands())
-                    .addAllEvents(response.getEvents())
-                    .build();
-        } catch (CommandRejectedError e) {
-            throw new RouterException("Event processing failed: " + e.getReason(), e);
-        }
-    }
-
-    /**
-     * Dispatch a notification to the saga's rejection handler.
-     */
-    private SagaResponse dispatchNotification(Any eventAny) throws RouterException {
-        try {
-            Notification notification = eventAny.unpack(Notification.class);
-
-            String targetDomain = "";
-            String targetCommand = "";
-
-            if (notification.hasPayload()) {
-                try {
-                    RejectionNotification rejection = notification.getPayload()
-                            .unpack(RejectionNotification.class);
-                    if (rejection.hasRejectedCommand() &&
-                            rejection.getRejectedCommand().getPagesCount() > 0) {
-                        CommandBook rejectedCmd = rejection.getRejectedCommand();
-                        targetDomain = rejectedCmd.hasCover() ?
-                                rejectedCmd.getCover().getDomain() : "";
-                        targetCommand = Helpers.typeNameFromUrl(
-                                rejectedCmd.getPages(0).getCommand().getTypeUrl());
-                    }
-                } catch (InvalidProtocolBufferException ignored) {
-                    // Malformed rejection notification
-                }
-            }
-
-            RejectionHandlerResponse response = handler.onRejected(
-                    notification, targetDomain, targetCommand);
-
-            SagaResponse.Builder builder = SagaResponse.newBuilder();
-            if (response.hasEvents()) {
-                builder.addEvents(response.getEvents());
-            }
-            return builder.build();
-        } catch (InvalidProtocolBufferException e) {
-            throw new RouterException("Failed to decode Notification", e);
-        } catch (CommandRejectedError e) {
-            throw new RouterException("Rejection handler failed: " + e.getReason(), e);
-        }
-    }
-
-    /**
-     * Exception type for router errors.
-     */
-    public static class RouterException extends Exception {
-        public RouterException(String message) {
-            super(message);
-        }
-
-        public RouterException(String message, Throwable cause) {
-            super(message, cause);
-        }
+    List<Registration<?>> registrations() {
+        return registrations;
     }
 }
