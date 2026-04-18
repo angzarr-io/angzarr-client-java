@@ -46,6 +46,27 @@ public final class CommandHandlerRouter<S> implements Built {
     }
 
     /**
+     * Rebuild the state for a registered handler class by replaying {@code events} through its
+     * {@code @Applies} methods. Useful for replay-style RPCs that need to materialize state
+     * without dispatching a command.
+     *
+     * @throws IllegalArgumentException if {@code handlerClass} is not registered.
+     */
+    @SuppressWarnings("unchecked")
+    public <T> T rebuildStateFor(Class<?> handlerClass, EventBook events) {
+        for (Registration<?> r : registrations) {
+            if (!r.handlerClass().equals(handlerClass)) continue;
+            Aggregate aggregate = (Aggregate) r.metadata().kindAnnotation();
+            Object handler = r.factory().get();
+            Object state = Dispatch.buildFreshState(handler, r.metadata(), aggregate.state());
+            Dispatch.replayAppliers(handler, state, r.metadata(), events);
+            return (T) state;
+        }
+        throw new IllegalArgumentException(
+                "handler class not registered with this router: " + handlerClass.getName());
+    }
+
+    /**
      * Dispatch a {@link ContextualCommand} to all registered handlers matching
      * {@code (domain, type_url)}.
      *

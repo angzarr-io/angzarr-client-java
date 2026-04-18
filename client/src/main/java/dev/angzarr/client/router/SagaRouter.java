@@ -1,12 +1,12 @@
 package dev.angzarr.client.router;
 
-import com.google.protobuf.Any;
 import com.google.protobuf.Message;
 import dev.angzarr.EventBook;
 import dev.angzarr.EventPage;
 import dev.angzarr.SagaHandleRequest;
 import dev.angzarr.SagaResponse;
 import dev.angzarr.client.Destinations;
+import dev.angzarr.client.SagaContext;
 import dev.angzarr.client.annotations.Saga;
 import io.grpc.Status;
 import java.lang.invoke.MethodHandle;
@@ -52,6 +52,7 @@ public final class SagaRouter implements Built {
         if (suffix.isEmpty()) return SagaResponse.getDefaultInstance();
 
         Destinations destinations = new Destinations(request.getDestinationSequencesMap());
+        SagaContext ctx = new SagaContext(source, destinations);
 
         SagaResponse.Builder response = SagaResponse.newBuilder();
         for (Registration<?> r : registrations) {
@@ -62,8 +63,9 @@ public final class SagaRouter implements Built {
                 Message evt = Dispatch.decodeMessage(trigger.getEvent(), entry.getKey());
                 Object handler = r.factory().get();
                 Object emitted;
+                Object secondArg = secondArgFor(entry.getValue(), ctx, destinations);
                 try {
-                    emitted = entry.getValue().invoke(handler, evt, destinations);
+                    emitted = entry.getValue().invoke(handler, evt, secondArg);
                 } catch (Throwable t) {
                     throw new DispatchException(
                             Status.Code.INTERNAL,
@@ -77,6 +79,19 @@ public final class SagaRouter implements Built {
             }
         }
         return response.build();
+    }
+
+    /**
+     * Pick the second argument based on the handler method's declared parameter type. Accepts
+     * {@link SagaContext} (for handlers that need the source book / source root) or {@link
+     * Destinations} (for pure stamping handlers).
+     */
+    private static Object secondArgFor(MethodHandle handle, SagaContext ctx, Destinations dest) {
+        // Parameter index 0 is the receiver (handler instance); 1 is the event; 2 is the context.
+        if (handle.type().parameterCount() < 3) return dest;
+        Class<?> p = handle.type().parameterType(2);
+        if (SagaContext.class.isAssignableFrom(p)) return ctx;
+        return dest;
     }
 
     private static void mergeSagaOutput(Object emitted, SagaResponse.Builder response) {

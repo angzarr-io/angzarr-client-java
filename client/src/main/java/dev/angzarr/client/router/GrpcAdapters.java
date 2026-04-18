@@ -32,10 +32,15 @@ final class GrpcAdapters {
     }
 
     static Status toStatus(Throwable t) {
-        // A user-thrown CommandRejectedError may arrive wrapped by MethodHandle.invoke and
-        // re-wrapped as a DispatchException(INTERNAL). Walk the cause chain first and let
-        // CommandRejectedError win — it's the most specific signal we can forward.
+        // A user-thrown rejection may arrive wrapped by MethodHandle.invoke and re-wrapped as a
+        // DispatchException(INTERNAL). Walk the cause chain first and let the most specific
+        // rejection signal win. Errors.CommandRejectedError (legacy client API) carries its own
+        // Status.Code — honor it. The router-package CommandRejectedError maps to
+        // FAILED_PRECONDITION by convention.
         for (Throwable cur = t; cur != null; cur = cur.getCause()) {
+            if (cur instanceof dev.angzarr.client.Errors.CommandRejectedError cre) {
+                return cre.toGrpcStatus();
+            }
             if (cur instanceof CommandRejectedError cre) {
                 return Status.FAILED_PRECONDITION.withDescription(cre.getReason());
             }
