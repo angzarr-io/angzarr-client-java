@@ -1,12 +1,15 @@
 package dev.angzarr.client.router;
 
 import com.google.protobuf.Any;
+import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.Message;
 import dev.angzarr.BusinessResponse;
 import dev.angzarr.CommandBook;
 import dev.angzarr.ContextualCommand;
 import dev.angzarr.EventBook;
 import dev.angzarr.EventPage;
+import dev.angzarr.Notification;
+import dev.angzarr.RejectionNotification;
 import dev.angzarr.client.annotations.Aggregate;
 import io.grpc.Status;
 import java.lang.invoke.MethodHandle;
@@ -69,6 +72,11 @@ public final class CommandHandlerRouter<S> implements Built {
         }
         String typeSuffix = Dispatch.fullNameFromTypeUrl(typeUrl);
 
+        // Notification branch: compensation for a rejected upstream command.
+        if (typeSuffix.equals("angzarr.Notification")) {
+            return dispatchNotification(commandAny, request);
+        }
+
         List<Match> matches = findMatches(domain, typeSuffix);
         if (matches.isEmpty()) {
             throw new DispatchException(
@@ -123,6 +131,80 @@ public final class CommandHandlerRouter<S> implements Built {
             }
         }
         return out;
+    }
+
+    private BusinessResponse dispatchNotification(Any commandAny, ContextualCommand request) {
+        Notification notification;
+        try {
+            notification = Notification.parseFrom(commandAny.getValue());
+        } catch (InvalidProtocolBufferException ipbe) {
+            throw new DispatchException(
+                    Status.Code.INVALID_ARGUMENT, "malformed Notification payload", ipbe);
+        }
+        RejectionNotification rejection = RejectionNotification.getDefaultInstance();
+        if (notification.hasPayload()) {
+            try {
+                rejection =
+                        notification.getPayload().unpack(RejectionNotification.class);
+            } catch (InvalidProtocolBufferException ipbe) {
+                throw new DispatchException(
+                        Status.Code.INVALID_ARGUMENT,
+                        "Notification payload is not a RejectionNotification",
+                        ipbe);
+            }
+        }
+
+        String sourceDomain = "";
+        String cmdSuffix = "";
+        if (rejection.hasRejectedCommand()) {
+            CommandBook rc = rejection.getRejectedCommand();
+            if (rc.hasCover()) {
+                sourceDomain = rc.getCover().getDomain();
+            }
+            if (rc.getPagesCount() > 0 && rc.getPages(0).hasCommand()) {
+                String rcTypeUrl = rc.getPages(0).getCommand().getTypeUrl();
+                if (!rcTypeUrl.isEmpty()) {
+                    int slash = rcTypeUrl.lastIndexOf('/');
+                    String fullName = slash < 0 ? rcTypeUrl : rcTypeUrl.substring(slash + 1);
+                    int dot = fullName.lastIndexOf('.');
+                    cmdSuffix = dot < 0 ? fullName : fullName.substring(dot + 1);
+                }
+            }
+        }
+
+        EventBook prior = request.hasEvents() ? request.getEvents() : null;
+        long baseSeq = prior == null ? 0L : prior.getNextSequence();
+        long currentSeq = baseSeq;
+        EventBook.Builder merged = EventBook.newBuilder();
+
+        HandlerMetadata.RejectedKey key = new HandlerMetadata.RejectedKey(sourceDomain, cmdSuffix);
+        for (Registration<?> r : registrations) {
+            MethodHandle rejectedHandle = r.metadata().rejected().get(key);
+            if (rejectedHandle == null) continue;
+            Aggregate aggregate = (Aggregate) r.metadata().kindAnnotation();
+            Object handler = r.factory().get();
+            Object state = Dispatch.buildFreshState(handler, r.metadata(), aggregate.state());
+            Dispatch.replayAppliers(handler, state, r.metadata(), prior);
+            Object emitted;
+            try {
+                emitted = rejectedHandle.invoke(handler, notification, state);
+            } catch (Throwable t) {
+                throw new DispatchException(
+                        Status.Code.INTERNAL,
+                        "@Rejected on "
+                                + r.handlerClass().getSimpleName()
+                                + " failed: "
+                                + t.getMessage(),
+                        t);
+            }
+            EventBook packed = Dispatch.packEvents(emitted, currentSeq);
+            for (EventPage page : packed.getPagesList()) {
+                merged.addPages(page);
+            }
+            currentSeq += packed.getPagesCount();
+        }
+
+        return BusinessResponse.newBuilder().setEvents(merged.build()).build();
     }
 
     private record Match(Registration<?> registration, Class<?> commandClass, MethodHandle handle) {}
