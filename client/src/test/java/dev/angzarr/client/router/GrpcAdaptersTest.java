@@ -97,7 +97,7 @@ class GrpcAdaptersTest {
 
     private static Any coverAny(String domain) {
         return Any.newBuilder()
-                .setTypeUrl("type.googleapis.com/angzarr.Cover")
+                .setTypeUrl("type.googleapis.com/angzarr_client.proto.angzarr.Cover")
                 .setValue(Cover.newBuilder().setDomain(domain).build().toByteString())
                 .build();
     }
@@ -176,23 +176,6 @@ class GrpcAdaptersTest {
                         .build();
         svc.handle(SagaHandleRequest.newBuilder().setSource(source).build(), c);
 
-        assertThat(c.error).isNull();
-        assertThat(c.completed).isTrue();
-        assertThat(c.values).hasSize(1);
-    }
-
-    @Test
-    void processManagerGrpcPrepareReturnsEmpty() {
-        ProcessManagerGrpc svc =
-                new ProcessManagerGrpc(
-                        (ProcessManagerRouter<?>)
-                                Router.newBuilder("pms")
-                                        .withHandler(
-                                                ProcessManagerDispatchTest.FulfillmentPm.class,
-                                                ProcessManagerDispatchTest.FulfillmentPm::new)
-                                        .build());
-        Collector<dev.angzarr.ProcessManagerPrepareResponse> c = new Collector<>();
-        svc.prepare(dev.angzarr.ProcessManagerPrepareRequest.getDefaultInstance(), c);
         assertThat(c.error).isNull();
         assertThat(c.completed).isTrue();
         assertThat(c.values).hasSize(1);

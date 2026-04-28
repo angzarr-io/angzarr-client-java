@@ -2,8 +2,6 @@ package dev.angzarr.client.router;
 
 import dev.angzarr.ProcessManagerHandleRequest;
 import dev.angzarr.ProcessManagerHandleResponse;
-import dev.angzarr.ProcessManagerPrepareRequest;
-import dev.angzarr.ProcessManagerPrepareResponse;
 import dev.angzarr.ProcessManagerServiceGrpc;
 import io.grpc.stub.StreamObserver;
 import java.util.Objects;
@@ -11,8 +9,8 @@ import java.util.Objects;
 /**
  * gRPC servicer adapter for a unified {@link ProcessManagerRouter}.
  *
- * <p>{@code handle} delegates to the router. {@code prepare} returns an empty response —
- * destinations are config-driven in the Tier 5 model, so there is nothing to prepare at runtime.
+ * <p>{@code handle} delegates to the router. PMs translate trigger events plus their own
+ * state into commands/facts and rely on destination_sequences for command stamping.
  *
  * <p>Mirrors Python's {@code ProcessManagerGrpc} in {@code router/server.py}.
  */
@@ -26,14 +24,6 @@ public class ProcessManagerGrpc extends ProcessManagerServiceGrpc.ProcessManager
 
     public ProcessManagerRouter<?> getRouter() {
         return router;
-    }
-
-    @Override
-    public void prepare(
-            ProcessManagerPrepareRequest request,
-            StreamObserver<ProcessManagerPrepareResponse> responseObserver) {
-        GrpcAdapters.invoke(
-                responseObserver, () -> ProcessManagerPrepareResponse.getDefaultInstance());
     }
 
     @Override
