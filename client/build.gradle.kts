@@ -49,7 +49,7 @@ tasks.test {
 
 // Copy only client library feature files to test resources (not examples/acceptance)
 tasks.register<Copy>("copyClientFeatures") {
-    from("${rootDir}/angzarr-core/features/client")
+    from("${rootDir}/angzarr-project/features/client")
     into("src/test/resources/features")
 }
 

@@ -30,9 +30,14 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.12'
+          cache-read-only: ${{ github.ref != 'refs/heads/main' }}
 
       - name: Build
         run: just -f justfile.container build
 
       - name: Test
         run: just -f justfile.container test
+
+      - name: Format check
+        run: just -f justfile.container fmt
+        continue-on-error: true  # TODO: fix existing format violations then remove

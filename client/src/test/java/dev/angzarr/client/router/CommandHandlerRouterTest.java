@@ -137,6 +137,33 @@ class CommandHandlerRouterTest {
     }
 
     // =========================================================================
+    // HandleFact Tests
+    // =========================================================================
+
+    @Nested
+    class HandleFactTests {
+        @Test
+        void defaultHandleFactIsPassThrough() {
+            var handler = new TestHandler();
+            var facts = EventBook.newBuilder()
+                    .setCover(Cover.newBuilder().setDomain("test").build())
+                    .addPages(EventPage.newBuilder()
+                            .setHeader(PageHeader.newBuilder().setSequence(1).build())
+                            .setEvent(Any.newBuilder()
+                                    .setTypeUrl("type.googleapis.com/test.FactEvent")
+                                    .build())
+                            .build())
+                    .build();
+            var state = new TestState();
+
+            var result = handler.handleFact(facts, state);
+
+            assertThat(result).isEqualTo(facts);
+            assertThat(result.getPagesCount()).isEqualTo(1);
+        }
+    }
+
+    // =========================================================================
     // Dispatch Tests
     // =========================================================================
 

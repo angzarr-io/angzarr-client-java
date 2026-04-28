@@ -96,10 +96,14 @@ public final class Helpers {
     }
 
     /**
-     * Get the edition from an EventBook.
+     * Get the edition from an EventBook, or null if not set.
      */
     public static Edition edition(EventBook book) {
-        return book.hasCover() ? book.getCover().getEdition() : null;
+        if (!book.hasCover() || !book.getCover().hasEdition()) {
+            return null;
+        }
+        Edition e = book.getCover().getEdition();
+        return e.getName().isEmpty() ? null : e;
     }
 
     /**
