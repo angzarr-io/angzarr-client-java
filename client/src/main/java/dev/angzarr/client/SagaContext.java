@@ -1,72 +1,66 @@
 package dev.angzarr.client;
 
 import com.google.protobuf.ByteString;
-import dev.angzarr.*;
+import dev.angzarr.EventBook;
 import dev.angzarr.EventPage;
-
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
- * Context for saga handlers, providing access to destination aggregate state.
+ * Context passed to {@code @Handles} methods on {@code @Saga}-annotated classes.
  *
- * <p>Used in the splitter pattern where one event triggers commands to multiple aggregates.
- * Provides sequence number lookup for optimistic concurrency control.
+ * <p>Carries the full source {@link EventBook} that triggered this saga invocation plus a
+ * {@link Destinations} view for stamping outbound commands. Mirrors Python's {@code SagaContext}
+ * in {@code angzarr_client/saga_context.py}.
  *
- * <p>Usage:
- * <pre>{@code
- * List<CommandBook> handleTableSettled(TableSettled event, SagaContext ctx) {
- *     List<CommandBook> commands = new ArrayList<>();
- *     for (var payout : event.getPayoutsList()) {
- *         long targetSeq = ctx.getSequence("player", payout.getPlayerRoot());
- *         // ... build CommandBook with sequence
- *     }
- *     return commands;
- * }
- * }</pre>
+ * <p>Saga handlers that only need sequence stamping can use {@link #destinations()} directly;
+ * handlers that need the source aggregate's root, correlation id, or trigger event can read
+ * {@link #source()} or the convenience accessors.
  */
-public class SagaContext {
-    private final Map<String, EventBook> destinations;
+public final class SagaContext {
 
-    /**
-     * Create a context from a list of destination EventBooks.
-     */
-    public SagaContext(List<EventBook> destinationBooks) {
-        this.destinations = new HashMap<>();
-        for (EventBook book : destinationBooks) {
-            if (book.hasCover() && !book.getCover().getDomain().isEmpty()) {
-                String key = makeKey(book.getCover().getDomain(), book.getCover().getRoot().getValue());
-                destinations.put(key, book);
-            }
-        }
+    private final EventBook source;
+    private final Destinations destinations;
+
+    public SagaContext(EventBook source, Destinations destinations) {
+        this.source = source;
+        this.destinations = destinations;
+    }
+
+    public SagaContext(EventBook source, Map<String, Integer> destinationSequences) {
+        this(source, new Destinations(destinationSequences));
+    }
+
+    /** The full source EventBook carrying the trigger event and the source aggregate's cover. */
+    public EventBook source() {
+        return source;
+    }
+
+    /** Destinations view for stamping outbound commands. */
+    public Destinations destinations() {
+        return destinations;
+    }
+
+    /** Domain of the source aggregate, or empty string if no cover is present. */
+    public String sourceDomain() {
+        return source.hasCover() ? source.getCover().getDomain() : "";
     }
 
     /**
-     * Get the next sequence number for a destination aggregate.
-     * Returns 1 if the aggregate doesn't exist yet.
+     * Root UUID bytes of the source aggregate, or {@link ByteString#EMPTY} if no root is set.
+     * Useful for correlating emitted facts back to the triggering aggregate.
      */
-    public long getSequence(String domain, ByteString aggregateRoot) {
-        String key = makeKey(domain, aggregateRoot);
-        EventBook book = destinations.get(key);
-        if (book == null || book.getPagesList().isEmpty()) {
-            return 1;
+    public ByteString sourceRoot() {
+        if (source.hasCover() && source.getCover().hasRoot()) {
+            return source.getCover().getRoot().getValue();
         }
-        EventPage lastPage = book.getPagesList().get(book.getPagesList().size() - 1);
-        if (lastPage.hasHeader()) {
-            return lastPage.getHeader().getSequence() + 1;
-        }
-        return 1;
+        return ByteString.EMPTY;
     }
 
-    /**
-     * Get the EventBook for a destination aggregate, if available.
-     */
-    public EventBook getDestination(String domain, ByteString aggregateRoot) {
-        return destinations.get(makeKey(domain, aggregateRoot));
-    }
-
-    private static String makeKey(String domain, ByteString root) {
-        return domain + ":" + root.toStringUtf8();
+    /** Last event page in the source book — typically the trigger event. */
+    public EventPage trigger() {
+        if (source.getPagesCount() == 0) {
+            throw new IllegalStateException("source book has no pages");
+        }
+        return source.getPages(source.getPagesCount() - 1);
     }
 }

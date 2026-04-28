@@ -2,208 +2,231 @@ package dev.angzarr.client.router;
 
 import com.google.protobuf.Any;
 import com.google.protobuf.InvalidProtocolBufferException;
-import dev.angzarr.*;
-import dev.angzarr.client.Helpers;
-import dev.angzarr.client.compensation.RejectionHandlerResponse;
-
-import java.util.AbstractMap;
+import com.google.protobuf.Message;
+import dev.angzarr.BusinessResponse;
+import dev.angzarr.CommandBook;
+import dev.angzarr.ContextualCommand;
+import dev.angzarr.EventBook;
+import dev.angzarr.EventPage;
+import dev.angzarr.Notification;
+import dev.angzarr.RejectionNotification;
+import dev.angzarr.client.annotations.Aggregate;
+import io.grpc.Status;
+import java.lang.invoke.MethodHandle;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 /**
- * Router for command handler components (commands -> events, single domain).
+ * Runtime router for aggregate (command handler) components.
  *
- * <p>Domain is set at construction time. No additional domain registration
- * is possible, enforcing single-domain constraint.
+ * <p>Produced exclusively by {@link Router#build()} when all registered handler classes carry
+ * {@link dev.angzarr.client.annotations.Aggregate @Aggregate}.
  *
- * <p>Example:
- * <pre>{@code
- * CommandHandlerRouter<PlayerState> router = new CommandHandlerRouter<>(
- *     "player",           // router name
- *     "player",           // domain
- *     new PlayerHandler() // handler
- * );
- *
- * // Get subscriptions for registration
- * List<Map.Entry<String, List<String>>> subs = router.subscriptions();
- *
- * // Dispatch a command
- * BusinessResponse response = router.dispatch(contextualCommand);
- * }</pre>
- *
- * @param <S> The state type for this command handler
+ * @param <S> The state type (erased at runtime; declared via {@code @Aggregate(state = ...)})
  */
-public class CommandHandlerRouter<S> {
+public final class CommandHandlerRouter<S> implements Built {
 
     private final String name;
-    private final String domain;
-    private final CommandHandlerDomainHandler<S> handler;
+    private final List<Registration<?>> registrations;
 
-    /**
-     * Create a new command handler router.
-     *
-     * @param name The router name
-     * @param domain The domain this command handler handles
-     * @param handler The domain handler
-     */
-    public CommandHandlerRouter(String name, String domain, CommandHandlerDomainHandler<S> handler) {
+    CommandHandlerRouter(String name, List<Registration<?>> registrations) {
         this.name = name;
-        this.domain = domain;
-        this.handler = handler;
+        this.registrations = registrations;
     }
 
-    /**
-     * Get the router name.
-     */
-    public String getName() {
+    @Override
+    public String name() {
         return name;
     }
 
-    /**
-     * Get the domain.
-     */
-    public String getDomain() {
-        return domain;
+    /** Registered (class, factory, metadata) triples, in registration order. */
+    List<Registration<?>> registrations() {
+        return registrations;
     }
 
     /**
-     * Get command types from the handler.
-     */
-    public List<String> getCommandTypes() {
-        return handler.commandTypes();
-    }
-
-    /**
-     * Get subscriptions for this command handler.
+     * Rebuild the state for a registered handler class by replaying {@code events} through its
+     * {@code @Applies} methods. Useful for replay-style RPCs that need to materialize state
+     * without dispatching a command.
      *
-     * @return List of (domain, command types) pairs
+     * @throws IllegalArgumentException if {@code handlerClass} is not registered.
      */
-    public List<Map.Entry<String, List<String>>> subscriptions() {
-        return List.of(new AbstractMap.SimpleEntry<>(domain, handler.commandTypes()));
-    }
-
-    /**
-     * Rebuild state from events using the handler's state router.
-     *
-     * @param events The event book containing prior events
-     * @return The rebuilt state
-     */
-    public S rebuildState(EventBook events) {
-        return handler.rebuild(events);
-    }
-
-    /**
-     * Dispatch a contextual command to the handler.
-     *
-     * @param cmd The contextual command containing command and prior events
-     * @return The business response containing resulting events or rejection
-     * @throws RouterException if dispatch fails
-     */
-    public BusinessResponse dispatch(ContextualCommand cmd) throws RouterException {
-        // Validate command structure
-        CommandBook commandBook = cmd.getCommand();
-        if (commandBook == null || commandBook.getPagesList().isEmpty()) {
-            throw new RouterException("Missing command book or pages");
+    @SuppressWarnings("unchecked")
+    public <T> T rebuildStateFor(Class<?> handlerClass, EventBook events) {
+        for (Registration<?> r : registrations) {
+            if (!r.handlerClass().equals(handlerClass)) continue;
+            Aggregate aggregate = (Aggregate) r.metadata().kindAnnotation();
+            Object handler = r.factory().get();
+            Object state = Dispatch.buildFreshState(handler, r.metadata(), aggregate.state());
+            Dispatch.replayAppliers(handler, state, r.metadata(), events);
+            return (T) state;
         }
+        throw new IllegalArgumentException(
+                "handler class not registered with this router: " + handlerClass.getName());
+    }
 
-        CommandPage commandPage = commandBook.getPages(0);
-        if (!commandPage.hasCommand()) {
-            throw new RouterException("Missing command payload");
+    /**
+     * Dispatch a {@link ContextualCommand} to all registered handlers matching
+     * {@code (domain, type_url)}.
+     *
+     * <p>Multi-handler fan-out: every matching factory is invoked once, handlers run in
+     * registration order, events are concatenated into one {@link EventBook}, and the sequence
+     * counter advances monotonically across the merged stream. State is rebuilt independently per
+     * handler instance via its own {@code @Applies} methods.
+     */
+    public BusinessResponse dispatch(ContextualCommand request) {
+        CommandBook cmdBook = request.getCommand();
+        if (cmdBook.getPagesCount() == 0) {
+            throw new DispatchException(Status.Code.INVALID_ARGUMENT, "CommandBook has no pages");
         }
-
-        Any commandAny = commandPage.getCommand();
-        EventBook eventBook = cmd.hasEvents() ? cmd.getEvents() : EventBook.getDefaultInstance();
-
-        // Rebuild state
-        S state = handler.rebuild(eventBook);
-        int seq = Helpers.nextSequence(eventBook);
-
+        if (!cmdBook.hasCover() || cmdBook.getCover().getDomain().isEmpty()) {
+            throw new DispatchException(
+                    Status.Code.INVALID_ARGUMENT, "CommandBook cover has no domain");
+        }
+        String domain = cmdBook.getCover().getDomain();
+        Any commandAny = cmdBook.getPages(0).getCommand();
         String typeUrl = commandAny.getTypeUrl();
+        if (typeUrl.isEmpty()) {
+            throw new DispatchException(
+                    Status.Code.INVALID_ARGUMENT, "CommandPage has no command payload");
+        }
+        String typeSuffix = Dispatch.fullNameFromTypeUrl(typeUrl);
 
-        // Check for Notification (rejection/compensation)
-        if (typeUrl.endsWith("Notification")) {
-            return dispatchNotification(commandAny, state);
+        // Notification branch: compensation for a rejected upstream command.
+        if (typeSuffix.equals("angzarr.Notification")) {
+            return dispatchNotification(commandAny, request);
         }
 
-        // Execute handler
-        try {
-            EventBook resultBook = handler.handle(commandBook, commandAny, state, seq);
-            return BusinessResponse.newBuilder()
-                    .setEvents(resultBook)
-                    .build();
-        } catch (CommandRejectedError e) {
-            throw new RouterException("Command rejected: " + e.getReason(), e);
+        List<Match> matches = findMatches(domain, typeSuffix);
+        if (matches.isEmpty()) {
+            throw new DispatchException(
+                    Status.Code.INVALID_ARGUMENT,
+                    "no handler registered for domain='" + domain + "' type_url='" + typeUrl + "'");
         }
+
+        EventBook prior = request.hasEvents() ? request.getEvents() : null;
+        long baseSeq = prior == null ? 0L : prior.getNextSequence();
+        long currentSeq = baseSeq;
+        EventBook.Builder merged = EventBook.newBuilder();
+
+        for (Match match : matches) {
+            Object handler = match.registration.factory().get();
+            Aggregate aggregate = (Aggregate) match.registration.metadata().kindAnnotation();
+            Object state =
+                    Dispatch.buildFreshState(handler, match.registration.metadata(), aggregate.state());
+            Dispatch.replayAppliers(handler, state, match.registration.metadata(), prior);
+
+            Message cmd = Dispatch.decodeMessage(commandAny, match.commandClass);
+            Object emitted;
+            try {
+                emitted = match.handle.invoke(handler, cmd, state, currentSeq);
+            } catch (Throwable t) {
+                throw new DispatchException(
+                        Status.Code.INTERNAL,
+                        "@Handles on "
+                                + match.registration.handlerClass().getSimpleName()
+                                + " failed: "
+                                + t.getMessage(),
+                        t);
+            }
+            EventBook packed = Dispatch.packEvents(emitted, currentSeq);
+            for (EventPage page : packed.getPagesList()) {
+                merged.addPages(page);
+            }
+            currentSeq += packed.getPagesCount();
+        }
+
+        return BusinessResponse.newBuilder().setEvents(merged.build()).build();
     }
 
-    /**
-     * Dispatch a notification to the rejection handler.
-     */
-    private BusinessResponse dispatchNotification(Any commandAny, S state) throws RouterException {
-        try {
-            Notification notification = commandAny.unpack(Notification.class);
-
-            String targetDomain = "";
-            String targetCommand = "";
-
-            if (notification.hasPayload()) {
-                try {
-                    RejectionNotification rejection = notification.getPayload()
-                            .unpack(RejectionNotification.class);
-                    if (rejection.hasRejectedCommand() &&
-                            rejection.getRejectedCommand().getPagesCount() > 0) {
-                        CommandBook rejectedCmd = rejection.getRejectedCommand();
-                        targetDomain = rejectedCmd.hasCover() ?
-                                rejectedCmd.getCover().getDomain() : "";
-                        targetCommand = Helpers.typeNameFromUrl(
-                                rejectedCmd.getPages(0).getCommand().getTypeUrl());
-                    }
-                } catch (InvalidProtocolBufferException ignored) {
-                    // Malformed rejection notification
+    private List<Match> findMatches(String domain, String typeSuffix) {
+        List<Match> out = new ArrayList<>();
+        for (Registration<?> r : registrations) {
+            Aggregate a = (Aggregate) r.metadata().kindAnnotation();
+            if (!a.domain().equals(domain)) continue;
+            for (Map.Entry<Class<?>, MethodHandle> e : r.metadata().handles().entrySet()) {
+                if (Dispatch.fullNameOf(e.getKey()).equals(typeSuffix)) {
+                    out.add(new Match(r, e.getKey(), e.getValue()));
                 }
             }
+        }
+        return out;
+    }
 
-            RejectionHandlerResponse response = handler.onRejected(
-                    notification, state, targetDomain, targetCommand);
-
-            if (response.hasEvents()) {
-                return BusinessResponse.newBuilder()
-                        .setEvents(response.getEvents())
-                        .build();
-            } else if (response.hasNotification()) {
-                return BusinessResponse.newBuilder()
-                        .setNotification(response.getNotification())
-                        .build();
-            } else {
-                return BusinessResponse.newBuilder()
-                        .setRevocation(RevocationResponse.newBuilder()
-                                .setEmitSystemRevocation(true)
-                                .setSendToDeadLetterQueue(false)
-                                .setEscalate(false)
-                                .setAbort(false)
-                                .setReason(String.format(
-                                        "Handler returned empty response for %s/%s",
-                                        targetDomain, targetCommand))
-                                .build())
-                        .build();
+    private BusinessResponse dispatchNotification(Any commandAny, ContextualCommand request) {
+        Notification notification;
+        try {
+            notification = Notification.parseFrom(commandAny.getValue());
+        } catch (InvalidProtocolBufferException ipbe) {
+            throw new DispatchException(
+                    Status.Code.INVALID_ARGUMENT, "malformed Notification payload", ipbe);
+        }
+        RejectionNotification rejection = RejectionNotification.getDefaultInstance();
+        if (notification.hasPayload()) {
+            try {
+                rejection =
+                        notification.getPayload().unpack(RejectionNotification.class);
+            } catch (InvalidProtocolBufferException ipbe) {
+                throw new DispatchException(
+                        Status.Code.INVALID_ARGUMENT,
+                        "Notification payload is not a RejectionNotification",
+                        ipbe);
             }
-        } catch (InvalidProtocolBufferException e) {
-            throw new RouterException("Failed to decode Notification", e);
-        } catch (CommandRejectedError e) {
-            throw new RouterException("Rejection handler failed: " + e.getReason(), e);
-        }
-    }
-
-    /**
-     * Exception type for router errors.
-     */
-    public static class RouterException extends Exception {
-        public RouterException(String message) {
-            super(message);
         }
 
-        public RouterException(String message, Throwable cause) {
-            super(message, cause);
+        String sourceDomain = "";
+        String cmdSuffix = "";
+        if (rejection.hasRejectedCommand()) {
+            CommandBook rc = rejection.getRejectedCommand();
+            if (rc.hasCover()) {
+                sourceDomain = rc.getCover().getDomain();
+            }
+            if (rc.getPagesCount() > 0 && rc.getPages(0).hasCommand()) {
+                String rcTypeUrl = rc.getPages(0).getCommand().getTypeUrl();
+                if (!rcTypeUrl.isEmpty()) {
+                    int slash = rcTypeUrl.lastIndexOf('/');
+                    String fullName = slash < 0 ? rcTypeUrl : rcTypeUrl.substring(slash + 1);
+                    int dot = fullName.lastIndexOf('.');
+                    cmdSuffix = dot < 0 ? fullName : fullName.substring(dot + 1);
+                }
+            }
         }
+
+        EventBook prior = request.hasEvents() ? request.getEvents() : null;
+        long baseSeq = prior == null ? 0L : prior.getNextSequence();
+        long currentSeq = baseSeq;
+        EventBook.Builder merged = EventBook.newBuilder();
+
+        HandlerMetadata.RejectedKey key = new HandlerMetadata.RejectedKey(sourceDomain, cmdSuffix);
+        for (Registration<?> r : registrations) {
+            MethodHandle rejectedHandle = r.metadata().rejected().get(key);
+            if (rejectedHandle == null) continue;
+            Aggregate aggregate = (Aggregate) r.metadata().kindAnnotation();
+            Object handler = r.factory().get();
+            Object state = Dispatch.buildFreshState(handler, r.metadata(), aggregate.state());
+            Dispatch.replayAppliers(handler, state, r.metadata(), prior);
+            Object emitted;
+            try {
+                emitted = rejectedHandle.invoke(handler, notification, state);
+            } catch (Throwable t) {
+                throw new DispatchException(
+                        Status.Code.INTERNAL,
+                        "@Rejected on "
+                                + r.handlerClass().getSimpleName()
+                                + " failed: "
+                                + t.getMessage(),
+                        t);
+            }
+            EventBook packed = Dispatch.packEvents(emitted, currentSeq);
+            for (EventPage page : packed.getPagesList()) {
+                merged.addPages(page);
+            }
+            currentSeq += packed.getPagesCount();
+        }
+
+        return BusinessResponse.newBuilder().setEvents(merged.build()).build();
     }
+
+    private record Match(Registration<?> registration, Class<?> commandClass, MethodHandle handle) {}
 }

@@ -1,116 +1,85 @@
 package dev.angzarr.client.router;
 
-import dev.angzarr.*;
-
-import java.util.*;
+import com.google.protobuf.Message;
+import dev.angzarr.EventBook;
+import dev.angzarr.EventPage;
+import dev.angzarr.Projection;
+import dev.angzarr.client.annotations.Projector;
+import io.grpc.Status;
+import java.lang.invoke.MethodHandle;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 
 /**
- * Router for projector components (events -> external output, multi-domain).
+ * Runtime router for projector components.
  *
- * <p>Domains are registered via fluent {@code .domain()} calls, supporting
- * multiple input domains.
- *
- * <p>Example:
- * <pre>{@code
- * ProjectorRouter router = ProjectorRouter.create("prj-output")
- *     .domain("player", new PlayerProjectorHandler())
- *     .domain("hand", new HandProjectorHandler());
- *
- * // Get subscriptions for registration
- * List<Map.Entry<String, List<String>>> subs = router.subscriptions();
- *
- * // Project events
- * Projection result = router.dispatch(events);
- * }</pre>
+ * <p>Produced exclusively by {@link Router#build()}. Every projector whose
+ * {@code @Projector(domains = [...])} includes the book's cover domain is instantiated once per
+ * dispatch and reused across every event in the book (so implementations can batch writes).
+ * Handler methods are {@code @Handles(EventClass)} → {@code void (EventClass)} — return values
+ * are ignored.
  */
-public class ProjectorRouter {
+public final class ProjectorRouter implements Built {
 
     private final String name;
-    private final Map<String, ProjectorDomainHandler> domains;
+    private final List<Registration<?>> registrations;
 
-    private ProjectorRouter(String name, Map<String, ProjectorDomainHandler> domains) {
+    ProjectorRouter(String name, List<Registration<?>> registrations) {
         this.name = name;
-        this.domains = domains;
+        this.registrations = registrations;
     }
 
-    /**
-     * Create a new projector router.
-     *
-     * @param name The router name
-     * @return A new router ready for domain registration
-     */
-    public static ProjectorRouter create(String name) {
-        return new ProjectorRouter(name, new HashMap<>());
-    }
-
-    /**
-     * Register a domain handler.
-     *
-     * <p>Projectors can have multiple input domains.
-     * Returns a new router with the additional domain registered.
-     *
-     * @param domainName The domain name to listen for
-     * @param handler The handler for events from this domain
-     * @return A new router with the domain registered
-     */
-    public ProjectorRouter domain(String domainName, ProjectorDomainHandler handler) {
-        Map<String, ProjectorDomainHandler> newDomains = new HashMap<>(this.domains);
-        newDomains.put(domainName, handler);
-        return new ProjectorRouter(name, newDomains);
-    }
-
-    /**
-     * Get the router name.
-     */
-    public String getName() {
+    @Override
+    public String name() {
         return name;
     }
 
-    /**
-     * Get subscriptions (domain + event types) for this projector.
-     *
-     * @return List of (domain, event types) pairs
-     */
-    public List<Map.Entry<String, List<String>>> subscriptions() {
-        List<Map.Entry<String, List<String>>> subs = new ArrayList<>();
-        for (Map.Entry<String, ProjectorDomainHandler> entry : domains.entrySet()) {
-            subs.add(new AbstractMap.SimpleEntry<>(entry.getKey(), entry.getValue().eventTypes()));
-        }
-        return subs;
+    List<Registration<?>> registrations() {
+        return registrations;
     }
 
-    /**
-     * Dispatch events to the appropriate handler.
-     *
-     * @param events The event book to project
-     * @return The projection result
-     * @throws RouterException if dispatch fails
-     */
-    public Projection dispatch(EventBook events) throws RouterException {
+    public Projection dispatch(EventBook events) {
         String domain = events.hasCover() ? events.getCover().getDomain() : "";
 
-        ProjectorDomainHandler handler = domains.get(domain);
-        if (handler == null) {
-            throw new RouterException("No handler for domain: " + domain);
+        // Live projectors: one instance per matching registration, shared across the book.
+        List<LiveProjector> live = new ArrayList<>();
+        for (Registration<?> r : registrations) {
+            Projector p = (Projector) r.metadata().kindAnnotation();
+            if (!Arrays.asList(p.domains()).contains(domain)) continue;
+            if (r.metadata().handles().isEmpty()) continue;
+            live.add(new LiveProjector(r.factory().get(), r.metadata().handles(), r.handlerClass()));
         }
 
-        try {
-            return handler.project(events);
-        } catch (ProjectorDomainHandler.ProjectionError e) {
-            throw new RouterException("Projection failed: " + e.getMessage(), e);
+        for (EventPage page : events.getPagesList()) {
+            if (!page.hasEvent()) continue;
+            String suffix = Dispatch.fullNameFromTypeUrl(page.getEvent().getTypeUrl());
+            if (suffix.isEmpty()) continue;
+            for (LiveProjector proj : live) {
+                for (Map.Entry<Class<?>, MethodHandle> entry : proj.handles.entrySet()) {
+                    if (!Dispatch.fullNameOf(entry.getKey()).equals(suffix)) continue;
+                    Message evt = Dispatch.decodeMessage(page.getEvent(), entry.getKey());
+                    try {
+                        entry.getValue().invoke(proj.instance, evt);
+                    } catch (Throwable t) {
+                        throw new DispatchException(
+                                Status.Code.INTERNAL,
+                                "@Handles on projector "
+                                        + proj.handlerClass.getSimpleName()
+                                        + " failed: "
+                                        + t.getMessage(),
+                                t);
+                    }
+                }
+            }
         }
+
+        Projection.Builder result = Projection.newBuilder();
+        if (events.hasCover()) result.setCover(events.getCover());
+        return result.build();
     }
 
-    /**
-     * Exception type for router errors.
-     */
-    public static class RouterException extends Exception {
-        public RouterException(String message) {
-            super(message);
-        }
-
-        public RouterException(String message, Throwable cause) {
-            super(message, cause);
-        }
-    }
+    private record LiveProjector(
+            Object instance, Map<Class<?>, MethodHandle> handles, Class<?> handlerClass) {}
 }

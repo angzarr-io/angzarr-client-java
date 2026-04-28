@@ -126,6 +126,11 @@ public class Errors {
             this.statusCode = statusCode;
         }
 
+        public GrpcError(String message, Status.Code statusCode, Throwable cause) {
+            super(message, cause);
+            this.statusCode = statusCode;
+        }
+
         public Status.Code getStatusCode() {
             return statusCode;
         }

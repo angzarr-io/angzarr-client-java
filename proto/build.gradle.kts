@@ -58,6 +58,8 @@ sourceSets {
             srcDir(protoDir)
             // Exclude health protos - not needed for Java client
             exclude("health/**")
+            // CloudEvents is a Rust-only subsystem as of Tier 5; no Java consumers.
+            exclude("angzarr/cloudevents.proto")
             extraExcludes.forEach { exclude(it) }
         }
     }

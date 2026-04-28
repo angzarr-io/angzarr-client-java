@@ -128,6 +128,22 @@ public final class Helpers {
     }
 
     /**
+     * Get the fully-qualified protobuf type name from a Java proto message class.
+     * Uses getDefaultInstance() reflection to access the descriptor.
+     *
+     * @param messageClass The proto message class
+     * @return Fully qualified name (e.g., "examples.player.RegisterPlayer")
+     */
+    public static String protoFullName(Class<? extends Message> messageClass) {
+        try {
+            Message instance = (Message) messageClass.getDeclaredMethod("getDefaultInstance").invoke(null);
+            return instance.getDescriptorForType().getFullName();
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to get proto full name for " + messageClass.getName(), e);
+        }
+    }
+
+    /**
      * Extract the type name from a type URL.
      */
     public static String typeNameFromUrl(String typeUrl) {

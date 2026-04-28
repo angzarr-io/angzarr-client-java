@@ -1,73 +1,34 @@
 /**
- * Unified router pattern for command handlers, sagas, process managers, and projectors.
+ * Tier 5 unified Router: one builder, four typed runtime routers, annotation-driven dispatch.
  *
- * <h2>Overview</h2>
+ * <h2>Shape</h2>
  *
- * <p>Two router categories based on domain cardinality:
+ * <p>Handler classes are plain POJOs annotated with exactly one of
+ * {@link dev.angzarr.client.annotations.Aggregate @Aggregate},
+ * {@link dev.angzarr.client.annotations.Saga @Saga},
+ * {@link dev.angzarr.client.annotations.ProcessManager @ProcessManager}, or
+ * {@link dev.angzarr.client.annotations.Projector @Projector}. Methods carry
+ * {@link dev.angzarr.client.annotations.Handles @Handles},
+ * {@link dev.angzarr.client.annotations.Applies @Applies},
+ * {@link dev.angzarr.client.annotations.Rejected @Rejected}, or
+ * {@link dev.angzarr.client.annotations.StateFactory @StateFactory}.
  *
- * <ul>
- *   <li><strong>Single-domain routers</strong>: {@link CommandHandlerRouter} and {@link SagaRouter}
- *       take their domain at construction time.</li>
- *   <li><strong>Multi-domain routers</strong>: {@link ProcessManagerRouter} and
- *       {@link ProjectorRouter} use fluent {@code .domain()} registration.</li>
- * </ul>
+ * <h2>Usage</h2>
  *
- * <h2>Handler Interfaces</h2>
- *
- * <p>Each component type has a corresponding handler interface:
- *
- * <ul>
- *   <li>{@link CommandHandlerDomainHandler} - commands -> events, with state</li>
- *   <li>{@link SagaDomainHandler} - events -> commands, stateless</li>
- *   <li>{@link ProcessManagerDomainHandler} - events -> commands + PM events, with shared state</li>
- *   <li>{@link ProjectorDomainHandler} - events -> external output</li>
- * </ul>
- *
- * <h2>Usage Examples</h2>
- *
- * <h3>Command Handler (single domain - domain in constructor)</h3>
  * <pre>{@code
- * CommandHandlerRouter<PlayerState> router = new CommandHandlerRouter<>(
- *     "player", "player", new PlayerHandler());
+ * Built built = Router.newBuilder("agg-service")
+ *     .withHandler(Player.class, () -> new Player(dbPool))
+ *     .withHandler(Hand.class, () -> new Hand(rng))
+ *     .build();
+ * if (built instanceof CommandHandlerRouter<?> router) {
+ *     BusinessResponse response = router.dispatch(ctxCmd);   // R6+
+ * }
  * }</pre>
  *
- * <h3>Saga (single domain - domain in constructor)</h3>
- * <pre>{@code
- * SagaRouter router = new SagaRouter(
- *     "saga-order-fulfillment", "order", "fulfillment", new OrderHandler());
- * }</pre>
+ * <h2>Metadata + caching</h2>
  *
- * <h3>Process Manager (multi-domain - fluent .domain())</h3>
- * <pre>{@code
- * ProcessManagerRouter<HandFlowState> router = ProcessManagerRouter
- *     .<HandFlowState>create("pmg-hand-flow", "hand-flow", stateRouter::withEventBook)
- *     .domain("order", new OrderPmHandler())
- *     .domain("inventory", new InventoryPmHandler());
- * }</pre>
- *
- * <h3>Projector (multi-domain - fluent .domain())</h3>
- * <pre>{@code
- * ProjectorRouter router = ProjectorRouter.create("prj-output")
- *     .domain("player", new PlayerProjectorHandler())
- *     .domain("hand", new HandProjectorHandler());
- * }</pre>
- *
- * <h2>Subscriptions</h2>
- *
- * <p>All routers provide a {@code subscriptions()} method that returns the
- * domain/type pairs needed for event/command routing configuration.
- *
- * <h2>Two-Phase Protocol</h2>
- *
- * <p>Sagas and process managers use a two-phase protocol:
- * <ol>
- *   <li>{@code prepareDestinations()} - declare what destination state is needed</li>
- *   <li>{@code dispatch()} - execute with fetched destination state</li>
- * </ol>
- *
- * @see CommandHandlerRouter
- * @see SagaRouter
- * @see ProcessManagerRouter
- * @see ProjectorRouter
+ * <p>{@link HandlerMetadata#of(Class)} extracts (kind, method dispatch tables) once per handler
+ * class, cached in a {@link ClassValue}. Method invocations go through {@link
+ * java.lang.invoke.MethodHandle}s bound at registration.
  */
 package dev.angzarr.client.router;
