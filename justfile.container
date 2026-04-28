@@ -21,6 +21,9 @@ test:
 coverage:
     gradle jacocoTestReport
 
+mutation-test:
+    gradle :client:pitest
+
 publish:
     gradle publish
 
