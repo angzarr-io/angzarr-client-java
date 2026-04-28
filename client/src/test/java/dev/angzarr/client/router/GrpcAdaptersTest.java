@@ -97,7 +97,7 @@ class GrpcAdaptersTest {
 
     private static Any coverAny(String domain) {
         return Any.newBuilder()
-                .setTypeUrl("type.googleapis.com/angzarr_client.proto.angzarr.Cover")
+                .setTypeUrl("type.googleapis.com/angzarr.Cover")
                 .setValue(Cover.newBuilder().setDomain(domain).build().toByteString())
                 .build();
     }
