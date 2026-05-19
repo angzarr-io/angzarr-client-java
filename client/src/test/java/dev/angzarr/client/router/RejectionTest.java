@@ -18,124 +18,124 @@ import org.junit.jupiter.api.Test;
 /** R10 — @Rejected routing: notifications mapped to compensation handlers. */
 class RejectionTest {
 
-    public static class State {}
+  public static class State {}
 
-    @Aggregate(domain = "order", state = State.class)
-    public static class OrderWithCompensation {
-        @Handles(Cover.class)
-        public Notification handle(Cover cmd, State s, long seq) {
-            return Notification.newBuilder().build();
-        }
-
-        @Rejected(domain = "payment", command = "ProcessPayment")
-        public Notification onPaymentRejected(Notification notif, State s) {
-            return Notification.newBuilder()
-                    .setCover(Cover.newBuilder().setDomain("compensated").build())
-                    .build();
-        }
+  @Aggregate(domain = "order", state = State.class)
+  public static class OrderWithCompensation {
+    @Handles(Cover.class)
+    public Notification handle(Cover cmd, State s, long seq) {
+      return Notification.newBuilder().build();
     }
 
-    @Aggregate(domain = "order", state = State.class)
-    public static class OtherAggregateForMerge {
-        @Handles(Cover.class)
-        public Notification handle(Cover cmd, State s, long seq) {
-            return Notification.newBuilder().build();
-        }
+    @Rejected(domain = "payment", command = "ProcessPayment")
+    public Notification onPaymentRejected(Notification notif, State s) {
+      return Notification.newBuilder()
+          .setCover(Cover.newBuilder().setDomain("compensated").build())
+          .build();
+    }
+  }
 
-        @Rejected(domain = "payment", command = "ProcessPayment")
-        public Notification onPaymentRejected(Notification notif, State s) {
-            return Notification.newBuilder()
-                    .setCover(Cover.newBuilder().setDomain("also-compensated").build())
-                    .build();
-        }
+  @Aggregate(domain = "order", state = State.class)
+  public static class OtherAggregateForMerge {
+    // Distinct @Handles type so audit-#18 build-time uniqueness on
+    // (domain, type_url) doesn't reject co-registration. The merge under
+    // test exercises @Rejected fan-out, which is unaffected by #18.
+    @Handles(dev.angzarr.PageHeader.class)
+    public Notification handle(dev.angzarr.PageHeader cmd, State s, long seq) {
+      return Notification.newBuilder().build();
     }
 
-    /** Build a ContextualCommand whose payload is a Notification wrapping a RejectionNotification. */
-    private static ContextualCommand rejectionCommand(String rejectedDomain, String rejectedTypeUrl) {
-        Any rejectedCmdPayload =
-                Any.newBuilder().setTypeUrl(rejectedTypeUrl).setValue(com.google.protobuf.ByteString.EMPTY).build();
-        CommandBook rejectedCommand =
-                CommandBook.newBuilder()
-                        .setCover(Cover.newBuilder().setDomain(rejectedDomain).build())
-                        .addPages(CommandPage.newBuilder().setCommand(rejectedCmdPayload).build())
-                        .build();
-        RejectionNotification rej =
-                RejectionNotification.newBuilder().setRejectedCommand(rejectedCommand).build();
-        Notification notif =
-                Notification.newBuilder().setPayload(Any.pack(rej)).build();
-        Any notifAny =
-                Any.newBuilder()
-                        .setTypeUrl("type.googleapis.com/angzarr.Notification")
-                        .setValue(notif.toByteString())
-                        .build();
-        CommandBook book =
-                CommandBook.newBuilder()
-                        .setCover(Cover.newBuilder().setDomain("order").build())
-                        .addPages(CommandPage.newBuilder().setCommand(notifAny).build())
-                        .build();
-        return ContextualCommand.newBuilder().setCommand(book).build();
+    @Rejected(domain = "payment", command = "ProcessPayment")
+    public Notification onPaymentRejected(Notification notif, State s) {
+      return Notification.newBuilder()
+          .setCover(Cover.newBuilder().setDomain("also-compensated").build())
+          .build();
     }
+  }
 
-    @Test
-    void rejectedHandlerTriggeredOnNotification() throws Exception {
-        CommandHandlerRouter<?> router =
-                (CommandHandlerRouter<?>)
-                        Router.newBuilder("agg")
-                                .withHandler(
-                                        OrderWithCompensation.class, OrderWithCompensation::new)
-                                .build();
+  /** Build a ContextualCommand whose payload is a Notification wrapping a RejectionNotification. */
+  private static ContextualCommand rejectionCommand(String rejectedDomain, String rejectedTypeUrl) {
+    Any rejectedCmdPayload =
+        Any.newBuilder()
+            .setTypeUrl(rejectedTypeUrl)
+            .setValue(com.google.protobuf.ByteString.EMPTY)
+            .build();
+    CommandBook rejectedCommand =
+        CommandBook.newBuilder()
+            .setCover(Cover.newBuilder().setDomain(rejectedDomain).build())
+            .addPages(CommandPage.newBuilder().setCommand(rejectedCmdPayload).build())
+            .build();
+    RejectionNotification rej =
+        RejectionNotification.newBuilder().setRejectedCommand(rejectedCommand).build();
+    Notification notif = Notification.newBuilder().setPayload(Any.pack(rej)).build();
+    Any notifAny =
+        Any.newBuilder()
+            .setTypeUrl("type.googleapis.com/angzarr_client.proto.angzarr.Notification")
+            .setValue(notif.toByteString())
+            .build();
+    CommandBook book =
+        CommandBook.newBuilder()
+            .setCover(Cover.newBuilder().setDomain("order").build())
+            .addPages(CommandPage.newBuilder().setCommand(notifAny).build())
+            .build();
+    return ContextualCommand.newBuilder().setCommand(book).build();
+  }
 
-        BusinessResponse resp =
-                router.dispatch(
-                        rejectionCommand(
-                                "payment", "type.googleapis.com/angzarr.ProcessPayment"));
+  @Test
+  void rejectedHandlerTriggeredOnNotification() throws Exception {
+    CommandHandlerRouter<?> router =
+        (CommandHandlerRouter<?>)
+            Router.newBuilder("agg")
+                .withHandler(OrderWithCompensation.class, OrderWithCompensation::new)
+                .build();
 
-        assertThat(resp.getEvents().getPagesCount()).isEqualTo(1);
-        Notification emitted =
-                Notification.parseFrom(resp.getEvents().getPages(0).getEvent().getValue());
-        assertThat(emitted.getCover().getDomain()).isEqualTo("compensated");
-    }
+    BusinessResponse resp =
+        router.dispatch(
+            rejectionCommand(
+                "payment", "type.googleapis.com/angzarr_client.proto.angzarr.ProcessPayment"));
 
-    @Test
-    void multipleRejectedHandlersMerge() throws Exception {
-        CommandHandlerRouter<?> router =
-                (CommandHandlerRouter<?>)
-                        Router.newBuilder("agg")
-                                .withHandler(
-                                        OrderWithCompensation.class, OrderWithCompensation::new)
-                                .withHandler(
-                                        OtherAggregateForMerge.class, OtherAggregateForMerge::new)
-                                .build();
+    assertThat(resp.getEvents().getPagesCount()).isEqualTo(1);
+    Notification emitted =
+        Notification.parseFrom(resp.getEvents().getPages(0).getEvent().getValue());
+    assertThat(emitted.getCover().getDomain()).isEqualTo("compensated");
+  }
 
-        BusinessResponse resp =
-                router.dispatch(
-                        rejectionCommand(
-                                "payment", "type.googleapis.com/angzarr.ProcessPayment"));
+  @Test
+  void multipleRejectedHandlersMerge() throws Exception {
+    CommandHandlerRouter<?> router =
+        (CommandHandlerRouter<?>)
+            Router.newBuilder("agg")
+                .withHandler(OrderWithCompensation.class, OrderWithCompensation::new)
+                .withHandler(OtherAggregateForMerge.class, OtherAggregateForMerge::new)
+                .build();
 
-        assertThat(resp.getEvents().getPagesCount()).isEqualTo(2);
-        Notification first =
-                Notification.parseFrom(resp.getEvents().getPages(0).getEvent().getValue());
-        Notification second =
-                Notification.parseFrom(resp.getEvents().getPages(1).getEvent().getValue());
-        assertThat(first.getCover().getDomain()).isEqualTo("compensated");
-        assertThat(second.getCover().getDomain()).isEqualTo("also-compensated");
-    }
+    BusinessResponse resp =
+        router.dispatch(
+            rejectionCommand(
+                "payment", "type.googleapis.com/angzarr_client.proto.angzarr.ProcessPayment"));
 
-    @Test
-    void noMatchingRejectedHandlerReturnsEmpty() {
-        CommandHandlerRouter<?> router =
-                (CommandHandlerRouter<?>)
-                        Router.newBuilder("agg")
-                                .withHandler(
-                                        OrderWithCompensation.class, OrderWithCompensation::new)
-                                .build();
+    assertThat(resp.getEvents().getPagesCount()).isEqualTo(2);
+    Notification first = Notification.parseFrom(resp.getEvents().getPages(0).getEvent().getValue());
+    Notification second =
+        Notification.parseFrom(resp.getEvents().getPages(1).getEvent().getValue());
+    assertThat(first.getCover().getDomain()).isEqualTo("compensated");
+    assertThat(second.getCover().getDomain()).isEqualTo("also-compensated");
+  }
 
-        // A rejection for an unrelated (domain, command) key.
-        BusinessResponse resp =
-                router.dispatch(
-                        rejectionCommand(
-                                "inventory", "type.googleapis.com/angzarr.ReserveStock"));
+  @Test
+  void noMatchingRejectedHandlerReturnsEmpty() {
+    CommandHandlerRouter<?> router =
+        (CommandHandlerRouter<?>)
+            Router.newBuilder("agg")
+                .withHandler(OrderWithCompensation.class, OrderWithCompensation::new)
+                .build();
 
-        assertThat(resp.getEvents().getPagesCount()).isEqualTo(0);
-    }
+    // A rejection for an unrelated (domain, command) key.
+    BusinessResponse resp =
+        router.dispatch(
+            rejectionCommand(
+                "inventory", "type.googleapis.com/angzarr_client.proto.angzarr.ReserveStock"));
+
+    assertThat(resp.getEvents().getPagesCount()).isEqualTo(0);
+  }
 }

@@ -4,28 +4,37 @@
 
 set shell := ["bash", "-c"]
 
-ROOT := `git rev-parse --show-toplevel`
+# Note: do not add a `git rev-parse`-based ROOT here — the container user UID
+# differs from the host user, so git refuses the repo as "dubious ownership".
+# Inside the container the workspace is always /workspace.
 
 default:
     @just --list
 
-proto:
-    gradle :proto:generateProto
+# Proto generation runs the gradle protobuf plugin directly. The plugin is the
+# EXECUTOR; the trigger (mtime guard, lefthook, recipe deps) lives in the
+# host-side justfile per project_proto_generation_model.
+generate-proto-force:
+    gradle --no-daemon :proto:generateProto
 
-build:
-    gradle build
+# Back-compat aliases.
+generate-proto: generate-proto-force
+proto: generate-proto-force
 
-test:
-    gradle :client:test
+build: generate-proto-force
+    gradle --no-daemon build
 
-coverage:
-    gradle jacocoTestReport
+test: generate-proto-force
+    gradle --no-daemon :client:test
 
-mutation-test:
-    gradle :client:pitest
+coverage: generate-proto-force
+    gradle --no-daemon jacocoTestReport
 
-publish:
-    gradle publish
+mutation-test: generate-proto-force
+    gradle --no-daemon :client:pitest
+
+publish: generate-proto-force
+    gradle --no-daemon publish
 
 # Format check (google-java-format)
 fmt:
@@ -46,5 +55,5 @@ fmt-fix:
     find client/src -name "*.java" | xargs java -jar "$JAR" --replace
 
 # Publish to local Maven repository for testing
-publish-local:
-    gradle publishToMavenLocal
+publish-local: generate-proto-force
+    gradle --no-daemon publishToMavenLocal

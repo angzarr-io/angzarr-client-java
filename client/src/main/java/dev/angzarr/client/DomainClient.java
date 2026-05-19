@@ -4,26 +4,27 @@ import dev.angzarr.CommandBook;
 import dev.angzarr.CommandResponse;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
-
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 /**
  * Combined client for command handler commands and event queries.
  *
- * <p>DomainClient combines QueryClient and CommandHandlerClient into a single unified
- * interface. This is the recommended entry point for most applications because:
+ * <p>DomainClient combines QueryClient and CommandHandlerClient into a single unified interface.
+ * This is the recommended entry point for most applications because:
+ *
  * <ul>
- *   <li>Single connection - one endpoint, one channel, reduced resource usage</li>
- *   <li>Unified API - both queries and commands through one object</li>
- *   <li>Builder access - fluent builders attached to the client instance</li>
- *   <li>Simpler DI - inject one client instead of two</li>
+ *   <li>Single connection - one endpoint, one channel, reduced resource usage
+ *   <li>Unified API - both queries and commands through one object
+ *   <li>Builder access - fluent builders attached to the client instance
+ *   <li>Simpler DI - inject one client instead of two
  * </ul>
  *
- * <p>For advanced use cases (separate scaling, different endpoints), use
- * QueryClient and CommandHandlerClient directly.
+ * <p>For advanced use cases (separate scaling, different endpoints), use QueryClient and
+ * CommandHandlerClient directly.
  *
  * <p>Usage:
+ *
  * <pre>{@code
  * DomainClient client = DomainClient.connect("localhost:1310");
  * try {
@@ -42,194 +43,211 @@ import java.util.concurrent.TimeUnit;
  */
 public class DomainClient implements AutoCloseable {
 
-    private final CommandHandlerClient commandHandler;
-    private final QueryClient query;
-    private final SpeculativeClient speculative;
-    private final ManagedChannel channel;
+  private final CommandHandlerClient commandHandler;
+  private final QueryClient query;
+  private final SpeculativeClient speculative;
+  private final ManagedChannel channel;
 
-    private DomainClient(ManagedChannel channel, CommandHandlerClient commandHandler, QueryClient query, SpeculativeClient speculative) {
-        this.channel = channel;
-        this.commandHandler = commandHandler;
-        this.query = query;
-        this.speculative = speculative;
+  private DomainClient(
+      ManagedChannel channel,
+      CommandHandlerClient commandHandler,
+      QueryClient query,
+      SpeculativeClient speculative) {
+    this.channel = channel;
+    this.commandHandler = commandHandler;
+    this.query = query;
+    this.speculative = speculative;
+  }
+
+  /**
+   * Connect to a domain's coordinator at the given endpoint.
+   *
+   * @param endpoint The server endpoint (host:port or unix:///path for UDS)
+   * @return A new DomainClient
+   * @throws Errors.ConnectionError if connection fails
+   */
+  public static DomainClient connect(String endpoint) {
+    try {
+      ManagedChannel channel =
+          ManagedChannelBuilder.forTarget(formatEndpoint(endpoint)).usePlaintext().build();
+      return new DomainClient(
+          channel,
+          CommandHandlerClient.fromChannel(channel),
+          QueryClient.fromChannel(channel),
+          SpeculativeClient.fromChannel(channel));
+    } catch (Exception e) {
+      throw new Errors.ConnectionError("Failed to connect to " + endpoint, e);
     }
+  }
 
-    /**
-     * Connect to a domain's coordinator at the given endpoint.
-     *
-     * @param endpoint The server endpoint (host:port or unix:///path for UDS)
-     * @return A new DomainClient
-     * @throws Errors.ConnectionError if connection fails
-     */
-    public static DomainClient connect(String endpoint) {
-        try {
-            ManagedChannel channel = ManagedChannelBuilder
-                .forTarget(formatEndpoint(endpoint))
-                .usePlaintext()
-                .build();
-            return new DomainClient(
-                channel,
-                CommandHandlerClient.fromChannel(channel),
-                QueryClient.fromChannel(channel),
-                SpeculativeClient.fromChannel(channel)
-            );
-        } catch (Exception e) {
-            throw new Errors.ConnectionError("Failed to connect to " + endpoint, e);
-        }
+  /**
+   * Connect using an environment variable with fallback.
+   *
+   * @param envVar The environment variable name
+   * @param defaultEndpoint Fallback endpoint if env var is not set
+   * @return A new DomainClient
+   */
+  public static DomainClient fromEnv(String envVar, String defaultEndpoint) {
+    String endpoint = System.getenv(envVar);
+    if (endpoint == null || endpoint.isEmpty()) {
+      endpoint = defaultEndpoint;
     }
+    return connect(endpoint);
+  }
 
-    /**
-     * Connect using an environment variable with fallback.
-     *
-     * @param envVar The environment variable name
-     * @param defaultEndpoint Fallback endpoint if env var is not set
-     * @return A new DomainClient
-     */
-    public static DomainClient fromEnv(String envVar, String defaultEndpoint) {
-        String endpoint = System.getenv(envVar);
-        if (endpoint == null || endpoint.isEmpty()) {
-            endpoint = defaultEndpoint;
-        }
-        return connect(endpoint);
+  /**
+   * Connect to a domain's command handler coordinator, resolving the endpoint via the
+   * cross-language transport protocol.
+   *
+   * <p>Auto-detects mode from {@link Transport#ENV_MODE} when {@code mode} is null. Mirrors
+   * Python's {@code DomainClient.for_domain} and Rust's {@code DomainClient::for_domain}.
+   */
+  public static DomainClient forDomain(String domain, Transport.Mode mode) {
+    String endpoint = Transport.resolveCommandHandlerEndpoint(domain, mode, null, null, null);
+    return connect(endpoint);
+  }
+
+  /** Auto-detect mode from {@link Transport#ENV_MODE}. */
+  public static DomainClient forDomain(String domain) {
+    return forDomain(domain, null);
+  }
+
+  /**
+   * Create a client from an existing channel.
+   *
+   * @param channel The gRPC channel to use
+   * @return A new DomainClient
+   */
+  public static DomainClient fromChannel(ManagedChannel channel) {
+    return new DomainClient(
+        null, // Don't own the channel
+        CommandHandlerClient.fromChannel(channel),
+        QueryClient.fromChannel(channel),
+        SpeculativeClient.fromChannel(channel));
+  }
+
+  /**
+   * Get the command handler client for direct access.
+   *
+   * @return The underlying CommandHandlerClient
+   */
+  public CommandHandlerClient getCommandHandler() {
+    return commandHandler;
+  }
+
+  /**
+   * Get the query client for direct access.
+   *
+   * @return The underlying QueryClient
+   */
+  public QueryClient getQuery() {
+    return query;
+  }
+
+  /**
+   * Get the speculative client for what-if scenarios.
+   *
+   * @return The underlying SpeculativeClient
+   */
+  public SpeculativeClient getSpeculative() {
+    return speculative;
+  }
+
+  /**
+   * Execute a command asynchronously (fire-and-forget). Use execute(command, syncMode) to specify a
+   * different sync mode.
+   *
+   * @param command The command to execute
+   * @return The command response
+   */
+  public CommandResponse execute(CommandBook command) {
+    return commandHandler.handle(command);
+  }
+
+  /**
+   * Execute a command with the specified sync mode.
+   *
+   * <p>Use SyncMode.SYNC_MODE_ASYNC for fire-and-forget (default). Use SyncMode.SYNC_MODE_SIMPLE to
+   * wait for sync projectors. Use SyncMode.SYNC_MODE_CASCADE for full sync including saga cascade.
+   *
+   * @param command The command to execute
+   * @param syncMode The synchronization mode
+   * @return The command response
+   */
+  public CommandResponse execute(CommandBook command, dev.angzarr.SyncMode syncMode) {
+    return commandHandler.handle(command, syncMode);
+  }
+
+  /**
+   * Start building a command for the given domain and root.
+   *
+   * @param domain The domain
+   * @param root The root UUID
+   * @return A CommandBuilder for fluent construction
+   */
+  public CommandBuilder command(String domain, UUID root) {
+    return commandHandler.command(domain, root);
+  }
+
+  /**
+   * Start building a command for a new entity (no root yet).
+   *
+   * @param domain The domain
+   * @return A CommandBuilder for fluent construction
+   */
+  public CommandBuilder commandNew(String domain) {
+    return commandHandler.commandNew(domain);
+  }
+
+  /**
+   * Start building a query for the given domain and root.
+   *
+   * @param domain The domain
+   * @param root The root UUID
+   * @return A QueryBuilder for fluent construction
+   */
+  public QueryBuilder query(String domain, UUID root) {
+    return query.query(domain, root);
+  }
+
+  /**
+   * Start building a query by domain only (use with byCorrelationId).
+   *
+   * @param domain The domain
+   * @return A QueryBuilder for fluent construction
+   */
+  public QueryBuilder queryDomain(String domain) {
+    return query.queryDomain(domain);
+  }
+
+  /** Close the underlying channel and clients. */
+  @Override
+  public void close() {
+    // Close individual clients first (they won't close the channel since they don't own it)
+    commandHandler.close();
+    query.close();
+
+    // Then close the channel if we own it
+    if (channel != null) {
+      try {
+        channel.shutdown().awaitTermination(5, TimeUnit.SECONDS);
+      } catch (InterruptedException e) {
+        channel.shutdownNow();
+        Thread.currentThread().interrupt();
+      }
     }
+  }
 
-    /**
-     * Create a client from an existing channel.
-     *
-     * @param channel The gRPC channel to use
-     * @return A new DomainClient
-     */
-    public static DomainClient fromChannel(ManagedChannel channel) {
-        return new DomainClient(
-            null, // Don't own the channel
-            CommandHandlerClient.fromChannel(channel),
-            QueryClient.fromChannel(channel),
-            SpeculativeClient.fromChannel(channel)
-        );
+  private static String formatEndpoint(String endpoint) {
+    // Audit #39: lenient UDS prefix detection.
+    var uds = Transport.detectUdsPath(endpoint);
+    if (uds.isPresent()) {
+      String path = uds.get();
+      if (path.startsWith("/")) {
+        return "unix://" + path;
+      }
+      return "unix:" + path;
     }
-
-    /**
-     * Get the command handler client for direct access.
-     *
-     * @return The underlying CommandHandlerClient
-     */
-    public CommandHandlerClient getCommandHandler() {
-        return commandHandler;
-    }
-
-    /**
-     * Get the query client for direct access.
-     *
-     * @return The underlying QueryClient
-     */
-    public QueryClient getQuery() {
-        return query;
-    }
-
-    /**
-     * Get the speculative client for what-if scenarios.
-     *
-     * @return The underlying SpeculativeClient
-     */
-    public SpeculativeClient getSpeculative() {
-        return speculative;
-    }
-
-    /**
-     * Execute a command asynchronously (fire-and-forget).
-     * Use execute(command, syncMode) to specify a different sync mode.
-     *
-     * @param command The command to execute
-     * @return The command response
-     */
-    public CommandResponse execute(CommandBook command) {
-        return commandHandler.handle(command);
-    }
-
-    /**
-     * Execute a command with the specified sync mode.
-     *
-     * <p>Use SyncMode.SYNC_MODE_ASYNC for fire-and-forget (default).
-     * Use SyncMode.SYNC_MODE_SIMPLE to wait for sync projectors.
-     * Use SyncMode.SYNC_MODE_CASCADE for full sync including saga cascade.
-     *
-     * @param command The command to execute
-     * @param syncMode The synchronization mode
-     * @return The command response
-     */
-    public CommandResponse execute(CommandBook command, dev.angzarr.SyncMode syncMode) {
-        return commandHandler.handle(command, syncMode);
-    }
-
-    /**
-     * Start building a command for the given domain and root.
-     *
-     * @param domain The domain
-     * @param root The root UUID
-     * @return A CommandBuilder for fluent construction
-     */
-    public CommandBuilder command(String domain, UUID root) {
-        return commandHandler.command(domain, root);
-    }
-
-    /**
-     * Start building a command for a new entity (no root yet).
-     *
-     * @param domain The domain
-     * @return A CommandBuilder for fluent construction
-     */
-    public CommandBuilder commandNew(String domain) {
-        return commandHandler.commandNew(domain);
-    }
-
-    /**
-     * Start building a query for the given domain and root.
-     *
-     * @param domain The domain
-     * @param root The root UUID
-     * @return A QueryBuilder for fluent construction
-     */
-    public QueryBuilder query(String domain, UUID root) {
-        return query.query(domain, root);
-    }
-
-    /**
-     * Start building a query by domain only (use with byCorrelationId).
-     *
-     * @param domain The domain
-     * @return A QueryBuilder for fluent construction
-     */
-    public QueryBuilder queryDomain(String domain) {
-        return query.queryDomain(domain);
-    }
-
-    /**
-     * Close the underlying channel and clients.
-     */
-    @Override
-    public void close() {
-        // Close individual clients first (they won't close the channel since they don't own it)
-        commandHandler.close();
-        query.close();
-
-        // Then close the channel if we own it
-        if (channel != null) {
-            try {
-                channel.shutdown().awaitTermination(5, TimeUnit.SECONDS);
-            } catch (InterruptedException e) {
-                channel.shutdownNow();
-                Thread.currentThread().interrupt();
-            }
-        }
-    }
-
-    private static String formatEndpoint(String endpoint) {
-        if (endpoint.startsWith("/") || endpoint.startsWith("./")) {
-            return "unix://" + endpoint;
-        }
-        if (endpoint.startsWith("unix://")) {
-            return endpoint;
-        }
-        return endpoint;
-    }
+    return endpoint;
+  }
 }

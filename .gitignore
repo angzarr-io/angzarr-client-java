@@ -3,6 +3,27 @@ target/
 *.class
 *.jar
 *.war
+# Gradle module build dirs.  Generated proto bindings land at
+# proto/build/generated/source/proto/main/{java,grpc}/ and are regenerated
+# on demand by `just generate-proto` — see project_proto_generation_model.
+proto/build/
+client/build/
+# Root-level build/ holds the language Containerfile (build/images/) which is
+# tracked source — only ignore the gradle-emitted subtrees explicitly.
+build/tmp/
+build/libs/
+build/classes/
+build/reports/
+build/distributions/
+build/resources/
+build/generated/
+# Gradle internal caches (always transient).
+.gradle/
+*/.gradle/
+**/.gradle/
+# Stuck-gradle leftover dirs (created when gradle daemon crashes and can't
+# clean up; safe to ignore — `just clean` removes them.)
+.gradle.stuck.*/
 proto/**/*.java
 
 # IDE
@@ -15,3 +36,8 @@ proto/**/*.java
 # OS
 .DS_Store
 Thumbs.db
+
+# Mutation testing
+.mutants-cache/
+mutation-reports/
+mutants-reports/

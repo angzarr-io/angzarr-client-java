@@ -23,12 +23,17 @@ Feature: CommandBuilder - Fluent Command Construction
     And the built command should have root "order-001"
     And the built command should have type URL containing "CreateOrder"
 
-  Scenario: Build command for new aggregate (no root)
+  Scenario: Build command for new aggregate (auto-generates client-side UUID)
+    # Per audit decision 2026-04-27 (finding #20 / P2.4a closed):
+    # `command_new(domain)` auto-generates a fresh UUID v4 for the
+    # root. Aggregate roots are always client-assigned across all
+    # languages — you cannot create an aggregate without a root.
     When I build a command for new aggregate in domain "orders"
       And I set the command type to "CreateOrder"
       And I set the command payload
     Then the built command should have domain "orders"
-    And the built command should have no root
+    And the built command should have an auto-generated UUID root
+    And the auto-generated root should be a valid UUID
 
   Scenario: Build generates correlation ID when not provided
     When I build a command for domain "orders"
@@ -136,6 +141,9 @@ Feature: CommandBuilder - Fluent Command Construction
     Then I should receive a CommandBuilder for that domain and root
 
   Scenario: Client provides command_new shortcut
+    # Per finding #20 / P2.4a closed: command_new auto-generates a
+    # client-side UUID v4 for the root in every language. Shortcut
+    # returns a CommandBuilder with both domain and root populated.
     Given a GatewayClient implementation
     When I call client.command_new("orders")
-    Then I should receive a CommandBuilder with no root set
+    Then I should receive a CommandBuilder for that domain and an auto-generated root
