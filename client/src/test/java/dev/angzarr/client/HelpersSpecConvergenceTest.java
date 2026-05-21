@@ -192,7 +192,7 @@ class HelpersSpecConvergenceTest {
             .build();
     EventPage page = EventPage.newBuilder().setEvent(any).build();
     Optional<Cover> decoded =
-        Helpers.decodeEvent(page, "angzarr_client.proto.angzarr.Cover", Cover.class);
+        Helpers.decodeEvent(page, "angzarr_client.proto.angzarr.v1.Cover", Cover.class);
     assertThat(decoded).isPresent();
     assertThat(decoded.get().getDomain()).isEqualTo("orders");
   }
@@ -207,7 +207,7 @@ class HelpersSpecConvergenceTest {
             .build();
     EventPage page = EventPage.newBuilder().setEvent(any).build();
     Optional<Cover> decoded =
-        Helpers.decodeEvent(page, "angzarr_client.proto.angzarr.Cover", Cover.class);
+        Helpers.decodeEvent(page, "angzarr_client.proto.angzarr.v1.Cover", Cover.class);
     assertThat(decoded).isEmpty();
   }
 
@@ -215,7 +215,7 @@ class HelpersSpecConvergenceTest {
   void decodeEventReturnsEmptyWhenNoEventPayload() {
     EventPage page = EventPage.newBuilder().build();
     Optional<Cover> decoded =
-        Helpers.decodeEvent(page, "angzarr_client.proto.angzarr.Cover", Cover.class);
+        Helpers.decodeEvent(page, "angzarr_client.proto.angzarr.v1.Cover", Cover.class);
     assertThat(decoded).isEmpty();
   }
 
@@ -235,7 +235,7 @@ class HelpersSpecConvergenceTest {
             .build();
     EventPage page = EventPage.newBuilder().setEvent(any).build();
     Optional<Cover> decoded =
-        Helpers.decodeEvent(page, "angzarr_client.proto.angzarr.Cover", Cover.class);
+        Helpers.decodeEvent(page, "angzarr_client.proto.angzarr.v1.Cover", Cover.class);
     assertThat(decoded).isEmpty();
   }
 }

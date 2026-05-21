@@ -7,11 +7,11 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Marks a method as a command handler for the specified command type.
- * The method should return an event or collection of events.
+ * Marks a method as a command handler for the specified command type. The method should return an
+ * event or collection of events.
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
 public @interface Handles {
-    Class<? extends Message> value();
+  Class<? extends Message> value();
 }

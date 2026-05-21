@@ -7,11 +7,11 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Marks a method as an event applier for the specified event type.
- * The method should mutate state in place.
+ * Marks a method as an event applier for the specified event type. The method should mutate state
+ * in place.
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
 public @interface Applies {
-    Class<? extends Message> value();
+  Class<? extends Message> value();
 }

@@ -41,7 +41,7 @@ public final class Helpers {
   public static final String DEFAULT_EDITION = "";
   public static final String META_ANGZARR_DOMAIN = "_angzarr";
   public static final String PROJECTION_DOMAIN_PREFIX = "_projection";
-  public static final String PROJECTION_TYPE_URL = "angzarr_client.proto.angzarr.Projection";
+  public static final String PROJECTION_TYPE_URL = "angzarr_client.proto.angzarr.v1.Projection";
   public static final String CORRELATION_ID_HEADER = "x-correlation-id";
   public static final String TYPE_URL_PREFIX = "type.googleapis.com/";
 

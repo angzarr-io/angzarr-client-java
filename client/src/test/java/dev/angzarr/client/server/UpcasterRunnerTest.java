@@ -24,7 +24,7 @@ class UpcasterRunnerTest {
   @Test
   void healthNameUpcasterIsCanonical() {
     assertThat(Server.HEALTH_NAME_UPCASTER)
-        .isEqualTo("angzarr_client.proto.angzarr.UpcasterService");
+        .isEqualTo("angzarr_client.proto.angzarr.v1.UpcasterService");
   }
 
   @Test

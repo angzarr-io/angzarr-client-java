@@ -3,15 +3,15 @@
  *
  * <h2>Shape</h2>
  *
- * <p>Handler classes are plain POJOs annotated with exactly one of
- * {@link dev.angzarr.client.annotations.Aggregate @Aggregate},
- * {@link dev.angzarr.client.annotations.Saga @Saga},
- * {@link dev.angzarr.client.annotations.ProcessManager @ProcessManager}, or
- * {@link dev.angzarr.client.annotations.Projector @Projector}. Methods carry
- * {@link dev.angzarr.client.annotations.Handles @Handles},
- * {@link dev.angzarr.client.annotations.Applies @Applies},
- * {@link dev.angzarr.client.annotations.Rejected @Rejected}, or
- * {@link dev.angzarr.client.annotations.StateFactory @StateFactory}.
+ * <p>Handler classes are plain POJOs annotated with exactly one of {@link
+ * dev.angzarr.client.annotations.Aggregate @Aggregate}, {@link
+ * dev.angzarr.client.annotations.Saga @Saga}, {@link
+ * dev.angzarr.client.annotations.ProcessManager @ProcessManager}, or {@link
+ * dev.angzarr.client.annotations.Projector @Projector}. Methods carry {@link
+ * dev.angzarr.client.annotations.Handles @Handles}, {@link
+ * dev.angzarr.client.annotations.Applies @Applies}, {@link
+ * dev.angzarr.client.annotations.Rejected @Rejected}, or {@link
+ * dev.angzarr.client.annotations.StateFactory @StateFactory}.
  *
  * <h2>Usage</h2>
  *

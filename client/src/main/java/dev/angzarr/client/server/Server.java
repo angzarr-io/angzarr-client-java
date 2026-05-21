@@ -62,21 +62,21 @@ public final class Server {
 
   /** Fully-qualified gRPC service name for command-handler routers. */
   public static final String HEALTH_NAME_COMMAND_HANDLER =
-      "angzarr_client.proto.angzarr.CommandHandlerService";
+      "angzarr_client.proto.angzarr.v1.CommandHandlerService";
 
   /** Fully-qualified gRPC service name for saga routers. */
-  public static final String HEALTH_NAME_SAGA = "angzarr_client.proto.angzarr.SagaService";
+  public static final String HEALTH_NAME_SAGA = "angzarr_client.proto.angzarr.v1.SagaService";
 
   /** Fully-qualified gRPC service name for process-manager routers. */
   public static final String HEALTH_NAME_PROCESS_MANAGER =
-      "angzarr_client.proto.angzarr.ProcessManagerService";
+      "angzarr_client.proto.angzarr.v1.ProcessManagerService";
 
   /** Fully-qualified gRPC service name for projector routers. */
   public static final String HEALTH_NAME_PROJECTOR =
-      "angzarr_client.proto.angzarr.ProjectorService";
+      "angzarr_client.proto.angzarr.v1.ProjectorService";
 
   /** Fully-qualified gRPC service name for upcaster routers. */
-  public static final String HEALTH_NAME_UPCASTER = "angzarr_client.proto.angzarr.UpcasterService";
+  public static final String HEALTH_NAME_UPCASTER = "angzarr_client.proto.angzarr.v1.UpcasterService";
 
   /**
    * Env var name for the full TCP bind address override ({@code host:port}).

@@ -16,7 +16,7 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 public @interface Aggregate {
-    String domain();
+  String domain();
 
-    Class<?> state();
+  Class<?> state();
 }

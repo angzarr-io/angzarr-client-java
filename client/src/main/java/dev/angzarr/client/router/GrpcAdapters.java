@@ -18,36 +18,36 @@ import java.util.function.Supplier;
  */
 final class GrpcAdapters {
 
-    private GrpcAdapters() {}
+  private GrpcAdapters() {}
 
-    /** Execute {@code dispatch} and deliver to {@code observer}, translating exceptions. */
-    static <T> void invoke(StreamObserver<T> observer, Supplier<T> dispatch) {
-        try {
-            T result = dispatch.get();
-            observer.onNext(result);
-            observer.onCompleted();
-        } catch (Throwable t) {
-            observer.onError(toStatus(t).asRuntimeException());
-        }
+  /** Execute {@code dispatch} and deliver to {@code observer}, translating exceptions. */
+  static <T> void invoke(StreamObserver<T> observer, Supplier<T> dispatch) {
+    try {
+      T result = dispatch.get();
+      observer.onNext(result);
+      observer.onCompleted();
+    } catch (Throwable t) {
+      observer.onError(toStatus(t).asRuntimeException());
     }
+  }
 
-    static Status toStatus(Throwable t) {
-        // A user-thrown rejection may arrive wrapped by MethodHandle.invoke and re-wrapped as a
-        // DispatchException(INTERNAL). Walk the cause chain first and let the most specific
-        // rejection signal win. Errors.CommandRejectedError (legacy client API) carries its own
-        // Status.Code — honor it. The router-package CommandRejectedError maps to
-        // FAILED_PRECONDITION by convention.
-        for (Throwable cur = t; cur != null; cur = cur.getCause()) {
-            if (cur instanceof dev.angzarr.client.Errors.CommandRejectedError cre) {
-                return cre.toGrpcStatus();
-            }
-            if (cur instanceof CommandRejectedError cre) {
-                return Status.FAILED_PRECONDITION.withDescription(cre.getReason());
-            }
-        }
-        if (t instanceof DispatchException de) {
-            return de.toStatus();
-        }
-        return Status.INTERNAL.withDescription(t.getMessage()).withCause(t);
+  static Status toStatus(Throwable t) {
+    // A user-thrown rejection may arrive wrapped by MethodHandle.invoke and re-wrapped as a
+    // DispatchException(INTERNAL). Walk the cause chain first and let the most specific
+    // rejection signal win. Errors.CommandRejectedError (legacy client API) carries its own
+    // Status.Code — honor it. The router-package CommandRejectedError maps to
+    // FAILED_PRECONDITION by convention.
+    for (Throwable cur = t; cur != null; cur = cur.getCause()) {
+      if (cur instanceof dev.angzarr.client.Errors.CommandRejectedError cre) {
+        return cre.toGrpcStatus();
+      }
+      if (cur instanceof CommandRejectedError cre) {
+        return Status.FAILED_PRECONDITION.withDescription(cre.getReason());
+      }
     }
+    if (t instanceof DispatchException de) {
+      return de.toStatus();
+    }
+    return Status.INTERNAL.withDescription(t.getMessage()).withCause(t);
+  }
 }

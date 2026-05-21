@@ -13,18 +13,18 @@ import java.util.Objects;
  */
 public class SagaGrpc extends SagaServiceGrpc.SagaServiceImplBase {
 
-    private final SagaRouter router;
+  private final SagaRouter router;
 
-    public SagaGrpc(SagaRouter router) {
-        this.router = Objects.requireNonNull(router, "router");
-    }
+  public SagaGrpc(SagaRouter router) {
+    this.router = Objects.requireNonNull(router, "router");
+  }
 
-    public SagaRouter getRouter() {
-        return router;
-    }
+  public SagaRouter getRouter() {
+    return router;
+  }
 
-    @Override
-    public void handle(SagaHandleRequest request, StreamObserver<SagaResponse> responseObserver) {
-        GrpcAdapters.invoke(responseObserver, () -> router.dispatch(request));
-    }
+  @Override
+  public void handle(SagaHandleRequest request, StreamObserver<SagaResponse> responseObserver) {
+    GrpcAdapters.invoke(responseObserver, () -> router.dispatch(request));
+  }
 }

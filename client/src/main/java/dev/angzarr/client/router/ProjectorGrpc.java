@@ -17,23 +17,23 @@ import java.util.Objects;
  */
 public class ProjectorGrpc extends ProjectorServiceGrpc.ProjectorServiceImplBase {
 
-    private final ProjectorRouter router;
+  private final ProjectorRouter router;
 
-    public ProjectorGrpc(ProjectorRouter router) {
-        this.router = Objects.requireNonNull(router, "router");
-    }
+  public ProjectorGrpc(ProjectorRouter router) {
+    this.router = Objects.requireNonNull(router, "router");
+  }
 
-    public ProjectorRouter getRouter() {
-        return router;
-    }
+  public ProjectorRouter getRouter() {
+    return router;
+  }
 
-    @Override
-    public void handle(EventBook request, StreamObserver<Projection> responseObserver) {
-        GrpcAdapters.invoke(responseObserver, () -> router.dispatch(request));
-    }
+  @Override
+  public void handle(EventBook request, StreamObserver<Projection> responseObserver) {
+    GrpcAdapters.invoke(responseObserver, () -> router.dispatch(request));
+  }
 
-    @Override
-    public void handleSpeculative(EventBook request, StreamObserver<Projection> responseObserver) {
-        GrpcAdapters.invoke(responseObserver, () -> router.dispatch(request));
-    }
+  @Override
+  public void handleSpeculative(EventBook request, StreamObserver<Projection> responseObserver) {
+    GrpcAdapters.invoke(responseObserver, () -> router.dispatch(request));
+  }
 }
