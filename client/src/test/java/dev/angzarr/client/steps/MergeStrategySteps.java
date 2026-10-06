@@ -429,8 +429,8 @@ public class MergeStrategySteps {
     assertThat(eventsPersisted).isTrue();
   }
 
-  @Then("the command fails with aggregate's error")
-  public void theCommandFailsWithAggregatesError() {
+  @Then("the command fails with the aggregate's rejection reason")
+  public void theCommandFailsWithTheAggregatesRejectionReason() {
     assertThat(commandFailed).isTrue();
   }
 

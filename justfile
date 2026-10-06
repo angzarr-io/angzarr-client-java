@@ -292,3 +292,12 @@ check: fmt
 
 # Cross-language alias — `just lint` placeholder (Java uses fmt-check only).
 lint: fmt
+
+# === Code complexity (PMD, in container) ===
+# Per-method cyclomatic complexity via PMD's CyclomaticComplexity rule (the
+# most actively maintained Java complexity tool; a real Java parser, not a
+# tokenizer). Baked into the angzarr-java image. Scans `client/src/main/java`
+# (generated proto lives in a separate gradle module). Threshold lives in
+# config/pmd-complexity.xml. Report-only — never fails the build.
+complexity *ARGS:
+    just _container complexity {{ARGS}}

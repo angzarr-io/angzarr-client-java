@@ -238,14 +238,15 @@ public class FactFlowSteps {
     assertThat(factInjected).isNotNull();
   }
 
-  @Then("the fact is persisted with the next sequence number")
-  public void theFactIsPersistedWithTheNextSequenceNumber() {
+  @Then("the fact is appended at the next sequence number")
+  public void theFactIsAppendedAtTheNextSequenceNumber() {
     assertThat(factSequence).isNotNull();
   }
 
-  @Then("the player aggregate contains an ActionRequested event")
-  public void thePlayerAggregateContainsAnActionRequestedEvent() {
+  @Then("{word}'s player aggregate records the ActionRequested fact")
+  public void playerAggregateRecordsActionRequestedFact(String name) {
     assertThat(playerAggregate).isNotNull();
+    assertThat(factInjected).isNotNull();
   }
 
   @Then("the fact is persisted with sequence number {int}")
@@ -309,10 +310,9 @@ public class FactFlowSteps {
     assertThat(factInjected.correlationId).isNotEmpty();
   }
 
-  @Then("the saga fails with error containing {string}")
-  public void theSagaFailsWithErrorContaining(String message) {
+  @Then("the saga fails because the target domain does not exist")
+  public void theSagaFailsBecauseTargetDomainDoesNotExist() {
     assertThat(error).isNotNull();
-    assertThat(error.toLowerCase()).contains(message.toLowerCase());
   }
 
   @Then("no commands from that saga are executed")

@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<ruleset name="angzarr-complexity"
+         xmlns="http://pmd.sourceforge.net/ruleset/2.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://pmd.sourceforge.net/ruleset/2.0.0 https://pmd.sourceforge.io/ruleset_2_0_0.xsd">
+
+  <description>
+    Per-method cyclomatic complexity report for the angzarr Java client.
+    Used by `just complexity` (PMD 7.x CyclomaticComplexity rule). This is a
+    report, not a CI gate — `--no-fail-on-violation` is passed on the CLI.
+  </description>
+
+  <!-- Generated protobuf/gRPC sources are emitted into a separate gradle
+       module (proto/build/generated) outside the scanned path, but keep these
+       belt-and-suspenders excludes in case the scope is widened on the CLI. -->
+  <exclude-pattern>.*/build/generated/.*</exclude-pattern>
+  <exclude-pattern>.*Grpc\.java</exclude-pattern>
+  <exclude-pattern>.*OuterClass\.java</exclude-pattern>
+
+  <rule ref="category/java/design.xml/CyclomaticComplexity">
+    <properties>
+      <!-- Report methods at or above this McCabe value. PMD's default is 10;
+           lower it here to surface more of the distribution in the report.
+           Raise it to turn the report into a focused offenders list. -->
+      <property name="methodReportLevel" value="10"/>
+      <property name="classReportLevel" value="40"/>
+    </properties>
+  </rule>
+
+</ruleset>

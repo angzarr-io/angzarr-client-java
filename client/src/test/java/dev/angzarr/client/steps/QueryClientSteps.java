@@ -365,4 +365,104 @@ public class QueryClientSteps {
     assertThat(operationFailed).isTrue();
     assertThat(errorType).isEqualTo("connection");
   }
+
+  // ==========================================================================
+  // New contract phrasings (query_client.feature - WIP stubs)
+  // ==========================================================================
+
+  // TODO (WIP): Implement this step matcher properly.
+  @Given("a query surface available")
+  public void aQuerySurfaceAvailable() {
+    throw new io.cucumber.java.PendingException("WIP: step needs implementation");
+  }
+
+  // TODO (WIP): Implement this step matcher properly.
+  @Then("the history is empty and the next sequence is {int}")
+  public void theHistoryIsEmptyAndTheNextSequenceIs(int seq) {
+    throw new io.cucumber.java.PendingException("WIP: step needs implementation");
+  }
+
+  // TODO (WIP): Implement this step matcher properly.
+  @Then("I receive {int} events")
+  public void iReceiveEvents(int count) {
+    throw new io.cucumber.java.PendingException("WIP: step needs implementation");
+  }
+
+  // TODO (WIP): Implement this step matcher properly.
+  @Then("I receive {int} event")
+  public void iReceiveEvent(int count) {
+    throw new io.cucumber.java.PendingException("WIP: step needs implementation");
+  }
+
+  // TODO (WIP): Implement this step matcher properly.
+  @Then("the events are in sequence order {int} to {int}")
+  public void theEventsAreInSequenceOrder(int from, int to) {
+    throw new io.cucumber.java.PendingException("WIP: step needs implementation");
+  }
+
+  // TODO (WIP): Implement this step matcher properly.
+  @Then("the first event has type {string}")
+  public void theFirstEventHasType(String type) {
+    throw new io.cucumber.java.PendingException("WIP: step needs implementation");
+  }
+
+  // TODO (WIP): Implement this step matcher properly.
+  @Then("the first event has payload {string}")
+  public void theFirstEventHasPayload(String payload) {
+    throw new io.cucumber.java.PendingException("WIP: step needs implementation");
+  }
+
+  // TODO (WIP): Implement this step matcher properly.
+  @Then("the first event has sequence {int}")
+  public void theFirstEventHasSequence(int seq) {
+    throw new io.cucumber.java.PendingException("WIP: step needs implementation");
+  }
+
+  // TODO (WIP): Implement this step matcher properly.
+  @Then("the last event has sequence {int}")
+  public void theLastEventHasSequence(int seq) {
+    throw new io.cucumber.java.PendingException("WIP: step needs implementation");
+  }
+
+  // TODO (WIP): Implement this step matcher properly.
+  @Then("I receive events up to that timestamp")
+  public void iReceiveEventsUpToThatTimestamp() {
+    throw new io.cucumber.java.PendingException("WIP: step needs implementation");
+  }
+
+  // TODO (WIP): Implement this step matcher properly.
+  @Then("I receive events from that edition only")
+  public void iReceiveEventsFromThatEditionOnly() {
+    throw new io.cucumber.java.PendingException("WIP: step needs implementation");
+  }
+
+  // TODO (WIP): Implement this step matcher properly.
+  @Then("I receive events from all correlated aggregates")
+  public void iReceiveEventsFromAllCorrelatedAggregates() {
+    throw new io.cucumber.java.PendingException("WIP: step needs implementation");
+  }
+
+  // TODO (WIP): Implement this step matcher properly.
+  @Then("I receive no events")
+  public void iReceiveNoEvents() {
+    throw new io.cucumber.java.PendingException("WIP: step needs implementation");
+  }
+
+  // TODO (WIP): Implement this step matcher properly.
+  @Then("the result carries a snapshot taken at sequence {int}")
+  public void theResultCarriesASnapshotTakenAtSequence(int seq) {
+    throw new io.cucumber.java.PendingException("WIP: step needs implementation");
+  }
+
+  // TODO (WIP): Implement this step matcher properly.
+  @Then("the query is refused because a domain is required")
+  public void theQueryIsRefusedBecauseADomainIsRequired() {
+    throw new io.cucumber.java.PendingException("WIP: step needs implementation");
+  }
+
+  // TODO (WIP): Implement this step matcher properly.
+  @Then("the query fails because the backend is unreachable")
+  public void theQueryFailsBecauseTheBackendIsUnreachable() {
+    throw new io.cucumber.java.PendingException("WIP: step needs implementation");
+  }
 }

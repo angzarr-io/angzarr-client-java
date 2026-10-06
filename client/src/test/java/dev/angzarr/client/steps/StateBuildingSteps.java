@@ -220,16 +220,32 @@ public class StateBuildingSteps {
   }
 
   // ==========================================================================
-  // Given Steps - Any-Wrapped Events
+  // Given Steps - Type-Erased Event Envelopes
   // ==========================================================================
 
-  @Given("events wrapped in google.protobuf.Any")
-  public void eventsWrappedInGoogleProtobufAny() {
-    eventBook = new MockEventBook();
-    eventBook.pages.add(new MockEventPage(0, "WrappedEvent"));
+  // TODO (WIP): Implement this step matcher properly.
+  @Given("events stored in a type-erased envelope")
+  public void eventsStoredInATypeErasedEnvelope() {
+    throw new io.cucumber.java.PendingException("WIP: step needs implementation");
   }
 
-  // Note: "an event with type_url" is in EventDecodingSteps
+  // TODO (WIP): Implement this step matcher properly.
+  @Given("an event whose envelope identifies type {string}")
+  public void anEventWhoseEnvelopeIdentifiesType(String typeIdentifier) {
+    throw new io.cucumber.java.PendingException("WIP: step needs implementation");
+  }
+
+  // TODO (WIP): Implement this step matcher properly.
+  @Given("a starting state and a sequence of type-erased events")
+  public void aStartingStateAndASequenceOfTypeErasedEvents() {
+    throw new io.cucumber.java.PendingException("WIP: step needs implementation");
+  }
+
+  // TODO (WIP): Implement this step matcher properly.
+  @Given("a state and a type-erased event")
+  public void aStateAndATypeErasedEvent() {
+    throw new io.cucumber.java.PendingException("WIP: step needs implementation");
+  }
 
   // ==========================================================================
   // Given Steps - Error Handling
@@ -301,18 +317,9 @@ public class StateBuildingSteps {
   }
 
   // ==========================================================================
-  // Given Steps - Language-Specific Patterns
+  // Given Steps - State Building Contract
+  // (Language-agnostic equivalents of build_state/apply_event)
   // ==========================================================================
-
-  @Given("a build_state function")
-  public void aBuildStateFunction() {
-    // Function exists by design
-  }
-
-  @Given("an _apply_event function")
-  public void anApplyEventFunction() {
-    // Function exists by design
-  }
 
   // ==========================================================================
   // When Steps
@@ -424,14 +431,16 @@ public class StateBuildingSteps {
     currentState.itemCount = originalState != null ? originalState.itemCount : 0;
   }
 
-  @When("I call build_state\\(state, events\\)")
-  public void iCallBuildStateWithStateAndEvents() {
-    currentState = defaultState.copy();
+  // TODO (WIP): Implement this step matcher properly.
+  @When("state is built")
+  public void stateIsBuilt() {
+    throw new io.cucumber.java.PendingException("WIP: step needs implementation");
   }
 
-  @When("I call _apply_event\\(state, event_any\\)")
-  public void iCallApplyEventWithStateAndEventAny() {
-    currentState = defaultState.copy();
+  // TODO (WIP): Implement this step matcher properly.
+  @When("the event is applied")
+  public void theEventIsApplied() {
+    throw new io.cucumber.java.PendingException("WIP: step needs implementation");
   }
 
   // ==========================================================================
@@ -536,12 +545,13 @@ public class StateBuildingSteps {
   }
 
   // ==========================================================================
-  // Then Steps - Any-Wrapped Events
+  // Then Steps - Type-Erased Event Envelopes
   // ==========================================================================
 
-  @Then("the Any wrapper should be unpacked")
-  public void theAnyWrapperShouldBeUnpacked() {
-    assertThat(currentState).isNotNull();
+  // TODO (WIP): Implement this step matcher properly.
+  @Then("the envelope should be unwrapped")
+  public void theEnvelopeShouldBeUnwrapped() {
+    throw new io.cucumber.java.PendingException("WIP: step needs implementation");
   }
 
   @Then("the typed event should be applied")
@@ -554,9 +564,10 @@ public class StateBuildingSteps {
     // Verified by event type matching
   }
 
-  @Then("the type_url suffix should match the handler")
-  public void theTypeUrlSuffixShouldMatchTheHandler() {
-    // Verified by design
+  // TODO (WIP): Implement this step matcher properly.
+  @Then("the type identifier should resolve to that handler")
+  public void theTypeIdentifierShouldResolveToThatHandler() {
+    throw new io.cucumber.java.PendingException("WIP: step needs implementation");
   }
 
   // ==========================================================================
@@ -570,14 +581,10 @@ public class StateBuildingSteps {
 
   // Note: "the error should indicate deserialization failure" is in RouterSteps
 
-  @Then("the behavior depends on language")
-  public void theBehaviorDependsOnLanguage() {
-    // May use default value or raise error
-  }
-
-  @Then("either default value is used or error is raised")
-  public void eitherDefaultValueIsUsedOrErrorIsRaised() {
-    // Language-dependent behavior
+  // TODO (WIP): Implement this step matcher properly.
+  @Then("the error should indicate the missing field")
+  public void theErrorShouldIndicateTheMissingField() {
+    throw new io.cucumber.java.PendingException("WIP: step needs implementation");
   }
 
   // ==========================================================================
@@ -617,37 +624,37 @@ public class StateBuildingSteps {
   }
 
   // ==========================================================================
-  // Then Steps - Language-Specific Patterns
+  // Then Steps - State Building Contract
   // ==========================================================================
 
-  @Then("each event should be unpacked from Any")
-  public void eachEventShouldBeUnpackedFromAny() {
-    // Verified by design
+  // TODO (WIP): Implement this step matcher properly.
+  @Then("each event should be unwrapped from its envelope")
+  public void eachEventShouldBeUnwrappedFromItsEnvelope() {
+    throw new io.cucumber.java.PendingException("WIP: step needs implementation");
   }
 
-  @Then("_apply_event should be called for each")
-  public void applyEventShouldBeCalledForEach() {
-    // Verified by design
+  // TODO (WIP): Implement this step matcher properly.
+  @Then("the event application step should run for each event")
+  public void theEventApplicationStepShouldRunForEachEvent() {
+    throw new io.cucumber.java.PendingException("WIP: step needs implementation");
   }
 
-  @Then("final state should be returned")
-  public void finalStateShouldBeReturned() {
-    assertThat(currentState).isNotNull();
+  // TODO (WIP): Implement this step matcher properly.
+  @Then("the resulting state should be returned")
+  public void theResultingStateShouldBeReturned() {
+    throw new io.cucumber.java.PendingException("WIP: step needs implementation");
   }
 
-  @Then("the event should be unpacked")
-  public void theEventShouldBeUnpacked() {
-    // Verified by design
+  // TODO (WIP): Implement this step matcher properly.
+  @Then("the handler registered for that event type should be invoked")
+  public void theHandlerRegisteredForThatEventTypeShouldBeInvoked() {
+    throw new io.cucumber.java.PendingException("WIP: step needs implementation");
   }
 
-  @Then("the correct type handler should be invoked")
-  public void theCorrectTypeHandlerShouldBeInvoked() {
-    // Verified by design
-  }
-
-  @Then("state should be mutated")
-  public void stateShouldBeMutated() {
-    assertThat(currentState).isNotNull();
+  // TODO (WIP): Implement this step matcher properly.
+  @Then("the produced state should reflect the event")
+  public void theProducedStateShouldReflectTheEvent() {
+    throw new io.cucumber.java.PendingException("WIP: step needs implementation");
   }
 
   // ==========================================================================

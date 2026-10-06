@@ -439,4 +439,20 @@ public class SpeculativeClientSteps {
     assertThat(operationFailed).isTrue();
     assertThat(errorType).isEqualTo("invalid_argument");
   }
+
+  // ==========================================================================
+  // New contract phrasings (speculative_client.feature - WIP stubs)
+  // ==========================================================================
+
+  // TODO (WIP): Implement this step matcher properly.
+  @Given("a what-if execution surface available")
+  public void aWhatIfExecutionSurfaceAvailable() {
+    throw new io.cucumber.java.PendingException("WIP: step needs implementation");
+  }
+
+  // TODO (WIP): Implement this step matcher properly.
+  @Then("the projected execution leaves no trace")
+  public void theProjectedExecutionLeavesNoTrace() {
+    throw new io.cucumber.java.PendingException("WIP: step needs implementation");
+  }
 }

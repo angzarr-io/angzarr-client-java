@@ -421,4 +421,230 @@ public class AggregateClientSteps {
     String key = domain + ":" + root;
     assertThat(aggregates.get(key)).isEqualTo(count);
   }
+
+  // ==========================================================================
+  // New contract phrasings (aggregate_client.feature - WIP stubs)
+  // ==========================================================================
+
+  // TODO (WIP): Implement this step matcher properly.
+  @Given("a client connected to the test backend")
+  public void aClientConnectedToTheTestBackend() {
+    throw new io.cucumber.java.PendingException("WIP: step needs implementation");
+  }
+
+  // TODO (WIP): Implement this step matcher properly.
+  @When("I send a {string} command with data {string}")
+  public void iSendACommandWithData(String cmdType, String data) {
+    throw new io.cucumber.java.PendingException("WIP: step needs implementation");
+  }
+
+  // TODO (WIP): Implement this step matcher properly.
+  @Then("the command is accepted")
+  public void theCommandIsAccepted() {
+    throw new io.cucumber.java.PendingException("WIP: step needs implementation");
+  }
+
+  // TODO (WIP): Implement this step matcher properly.
+  @Then("a single {string} event is recorded")
+  public void aSingleEventIsRecorded(String eventType) {
+    throw new io.cucumber.java.PendingException("WIP: step needs implementation");
+  }
+
+  // TODO (WIP): Implement this step matcher properly.
+  @When("I send an {string} command at sequence {int}")
+  public void iSendAnCommandAtSequence(String cmdType, int seq) {
+    throw new io.cucumber.java.PendingException("WIP: step needs implementation");
+  }
+
+  // TODO (WIP): Implement this step matcher properly.
+  @Then("the new events continue the history from sequence {int}")
+  public void theNewEventsContinueTheHistoryFromSequence(int seq) {
+    throw new io.cucumber.java.PendingException("WIP: step needs implementation");
+  }
+
+  // TODO (WIP): Implement this step matcher properly.
+  @When("I send a command tagged with correlation ID {string}")
+  public void iSendACommandTaggedWithCorrelationId(String cid) {
+    throw new io.cucumber.java.PendingException("WIP: step needs implementation");
+  }
+
+  // TODO (WIP): Implement this step matcher properly.
+  @Then("the resulting events carry correlation ID {string}")
+  public void theResultingEventsCarryCorrelationId(String cid) {
+    throw new io.cucumber.java.PendingException("WIP: step needs implementation");
+  }
+
+  // TODO (WIP): Implement this step matcher properly.
+  @When("I send a command at sequence {int}")
+  public void iSendACommandAtSequence(int seq) {
+    throw new io.cucumber.java.PendingException("WIP: step needs implementation");
+  }
+
+  // TODO (WIP): Implement this step matcher properly.
+  @Then("the command is refused because the aggregate has moved on")
+  public void theCommandIsRefusedBecauseTheAggregateHasMovedOn() {
+    throw new io.cucumber.java.PendingException("WIP: step needs implementation");
+  }
+
+  // TODO (WIP): Implement this step matcher properly.
+  @Then("one command is accepted")
+  public void oneCommandIsAccepted() {
+    throw new io.cucumber.java.PendingException("WIP: step needs implementation");
+  }
+
+  // TODO (WIP): Implement this step matcher properly.
+  @Then("the other is refused because the aggregate has moved on")
+  public void theOtherIsRefusedBecauseTheAggregateHasMovedOn() {
+    throw new io.cucumber.java.PendingException("WIP: step needs implementation");
+  }
+
+  // TODO (WIP): Implement this step matcher properly.
+  @When("I look up the current sequence for {string} root {string}")
+  public void iLookUpTheCurrentSequenceForRoot(String domain, String root) {
+    throw new io.cucumber.java.PendingException("WIP: step needs implementation");
+  }
+
+  // TODO (WIP): Implement this step matcher properly.
+  @When("I retry the command at that sequence")
+  public void iRetryTheCommandAtThatSequence() {
+    throw new io.cucumber.java.PendingException("WIP: step needs implementation");
+  }
+
+  // TODO (WIP): Implement this step matcher properly.
+  @When("I send a command without waiting for downstream work")
+  public void iSendACommandWithoutWaitingForDownstreamWork() {
+    throw new io.cucumber.java.PendingException("WIP: step needs implementation");
+  }
+
+  // TODO (WIP): Implement this step matcher properly.
+  @Then("the response returns before any projectors have caught up")
+  public void theResponseReturnsBeforeAnyProjectorsHaveCaughtUp() {
+    throw new io.cucumber.java.PendingException("WIP: step needs implementation");
+  }
+
+  // TODO (WIP): Implement this step matcher properly.
+  @When("I send a command and wait for projectors")
+  public void iSendACommandAndWaitForProjectors() {
+    throw new io.cucumber.java.PendingException("WIP: step needs implementation");
+  }
+
+  // TODO (WIP): Implement this step matcher properly.
+  @Then("the response reflects the projectors having processed the event")
+  public void theResponseReflectsTheProjectorsHavingProcessedTheEvent() {
+    throw new io.cucumber.java.PendingException("WIP: step needs implementation");
+  }
+
+  // TODO (WIP): Implement this step matcher properly.
+  @When("I send a command and wait for downstream sagas")
+  public void iSendACommandAndWaitForDownstreamSagas() {
+    throw new io.cucumber.java.PendingException("WIP: step needs implementation");
+  }
+
+  // TODO (WIP): Implement this step matcher properly.
+  @Then("the response reflects the downstream sagas having completed")
+  public void theResponseReflectsTheDownstreamSagasHavingCompleted() {
+    throw new io.cucumber.java.PendingException("WIP: step needs implementation");
+  }
+
+  // TODO (WIP): Implement this step matcher properly.
+  @When("I send a command with a malformed payload")
+  public void iSendACommandWithAMalformedPayload() {
+    throw new io.cucumber.java.PendingException("WIP: step needs implementation");
+  }
+
+  // TODO (WIP): Implement this step matcher properly.
+  @Then("the command is refused as invalid")
+  public void theCommandIsRefusedAsInvalid() {
+    throw new io.cucumber.java.PendingException("WIP: step needs implementation");
+  }
+
+  // TODO (WIP): Implement this step matcher properly.
+  @When("I send a command missing required fields")
+  public void iSendACommandMissingRequiredFields() {
+    throw new io.cucumber.java.PendingException("WIP: step needs implementation");
+  }
+
+  // TODO (WIP): Implement this step matcher properly.
+  @Then("the refusal names the missing field")
+  public void theRefusalNamesTheMissingField() {
+    throw new io.cucumber.java.PendingException("WIP: step needs implementation");
+  }
+
+  // TODO (WIP): Implement this step matcher properly.
+  @When("I send a command to domain {string}")
+  public void iSendACommandToDomain(String domain) {
+    throw new io.cucumber.java.PendingException("WIP: step needs implementation");
+  }
+
+  // TODO (WIP): Implement this step matcher properly.
+  @Then("the command is refused because the domain is unknown")
+  public void theCommandIsRefusedBecauseTheDomainIsUnknown() {
+    throw new io.cucumber.java.PendingException("WIP: step needs implementation");
+  }
+
+  // TODO (WIP): Implement this step matcher properly.
+  @When("I send a command that produces {int} events")
+  public void iSendACommandThatProducesEvents(int count) {
+    throw new io.cucumber.java.PendingException("WIP: step needs implementation");
+  }
+
+  // TODO (WIP): Implement this step matcher properly.
+  @Then("{int} events are recorded")
+  public void eventsAreRecorded(int count) {
+    throw new io.cucumber.java.PendingException("WIP: step needs implementation");
+  }
+
+  // TODO (WIP): Implement this step matcher properly.
+  @Then("the events occupy consecutive sequences starting at {int}")
+  public void theEventsOccupyConsecutiveSequencesStartingAt(int seq) {
+    throw new io.cucumber.java.PendingException("WIP: step needs implementation");
+  }
+
+  // TODO (WIP): Implement this step matcher properly.
+  @When("I read back the events for {string} root {string}")
+  public void iReadBackTheEventsForRoot(String domain, String root) {
+    throw new io.cucumber.java.PendingException("WIP: step needs implementation");
+  }
+
+  // TODO (WIP): Implement this step matcher properly.
+  @Then("either all {int} events are present or none of them are")
+  public void eitherAllEventsArePresentOrNoneOfThemAre(int count) {
+    throw new io.cucumber.java.PendingException("WIP: step needs implementation");
+  }
+
+  // TODO (WIP): Implement this step matcher properly.
+  @Given("the aggregate service does not respond in time")
+  public void theAggregateServiceDoesNotRespondInTime() {
+    throw new io.cucumber.java.PendingException("WIP: step needs implementation");
+  }
+
+  // TODO (WIP): Implement this step matcher properly.
+  @When("I send a command with a short timeout")
+  public void iSendACommandWithAShortTimeout() {
+    throw new io.cucumber.java.PendingException("WIP: step needs implementation");
+  }
+
+  // TODO (WIP): Implement this step matcher properly.
+  @Then("the call fails because the deadline was exceeded")
+  public void theCallFailsBecauseTheDeadlineWasExceeded() {
+    throw new io.cucumber.java.PendingException("WIP: step needs implementation");
+  }
+
+  // TODO (WIP): Implement this step matcher properly.
+  @Then("the call fails because the service cannot be reached")
+  public void theCallFailsBecauseTheServiceCannotBeReached() {
+    throw new io.cucumber.java.PendingException("WIP: step needs implementation");
+  }
+
+  // TODO (WIP): Implement this step matcher properly.
+  @When("I send a {string} command for root {string} at sequence {int}")
+  public void iSendACommandForRootAtSequence(String cmdType, String root, int seq) {
+    throw new io.cucumber.java.PendingException("WIP: step needs implementation");
+  }
+
+  // TODO (WIP): Implement this step matcher properly.
+  @Then("the aggregate now exists with one event")
+  public void theAggregateNowExistsWithOneEvent() {
+    throw new io.cucumber.java.PendingException("WIP: step needs implementation");
+  }
 }

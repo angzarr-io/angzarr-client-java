@@ -57,3 +57,11 @@ fmt-fix:
 # Publish to local Maven repository for testing
 publish-local: generate-proto-force
     gradle --no-daemon publishToMavenLocal
+
+# Per-method cyclomatic complexity (PMD's CyclomaticComplexity rule). Scans
+# the hand-written client sources only — generated proto lives in a separate
+# gradle module under proto/build/generated, outside this path. The ruleset
+# (config/pmd-complexity.xml) holds the report threshold and extra excludes.
+# `--no-fail-on-violation` keeps this a report — it does NOT fail the build.
+complexity *ARGS:
+    pmd check -d {{ if ARGS == "" { "client/src/main/java" } else { ARGS } }} -R config/pmd-complexity.xml -f text --no-fail-on-violation

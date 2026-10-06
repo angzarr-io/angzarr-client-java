@@ -442,4 +442,146 @@ public class CompensationContextSteps {
   public void theContextShouldHaveIssuerType(String expectedType) {
     assertThat(issuerType).isEqualTo(expectedType);
   }
+
+  // ==========================================================================
+  // New contract phrasings (compensation.feature - WIP stubs)
+  // ==========================================================================
+
+  // TODO (WIP): Implement this step matcher properly.
+  @When("the compensation context is constructed from the rejection")
+  public void theCompensationContextIsConstructedFromTheRejection() {
+    throw new io.cucumber.java.PendingException("WIP: step needs implementation");
+  }
+
+  // TODO (WIP): Implement this step matcher properly.
+  @Then("the context carries the rejected command")
+  public void theContextCarriesTheRejectedCommand() {
+    throw new io.cucumber.java.PendingException("WIP: step needs implementation");
+  }
+
+  // TODO (WIP): Implement this step matcher properly.
+  @Then("the context carries the rejection reason")
+  public void theContextCarriesTheRejectionReason() {
+    throw new io.cucumber.java.PendingException("WIP: step needs implementation");
+  }
+
+  // TODO (WIP): Implement this step matcher properly.
+  @Then("the context carries the saga origin")
+  public void theContextCarriesTheSagaOrigin() {
+    throw new io.cucumber.java.PendingException("WIP: step needs implementation");
+  }
+
+  // TODO (WIP): Implement this step matcher properly.
+  @Then("the saga origin is preserved")
+  public void theSagaOriginIsPreserved() {
+    throw new io.cucumber.java.PendingException("WIP: step needs implementation");
+  }
+
+  // TODO (WIP): Implement this step matcher properly.
+  @Then("the correlation ID is preserved")
+  public void theCorrelationIdIsPreserved() {
+    throw new io.cucumber.java.PendingException("WIP: step needs implementation");
+  }
+
+  // TODO (WIP): Implement this step matcher properly.
+  @Then("the notification carries the rejected command")
+  public void theNotificationCarriesTheRejectedCommand() {
+    throw new io.cucumber.java.PendingException("WIP: step needs implementation");
+  }
+
+  // TODO (WIP): Implement this step matcher properly.
+  @Then("the notification carries the rejection reason")
+  public void theNotificationCarriesTheRejectionReason() {
+    throw new io.cucumber.java.PendingException("WIP: step needs implementation");
+  }
+
+  // TODO (WIP): Implement this step matcher properly.
+  @Then("the source aggregate and sequence are recorded")
+  public void theSourceAggregateAndSequenceAreRecorded() {
+    throw new io.cucumber.java.PendingException("WIP: step needs implementation");
+  }
+
+  // TODO (WIP): Implement this step matcher properly.
+  @Then("the notification identifies the issuing saga as {string}")
+  public void theNotificationIdentifiesTheIssuingSagaAs(String sagaName) {
+    throw new io.cucumber.java.PendingException("WIP: step needs implementation");
+  }
+
+  // TODO (WIP): Implement this step matcher properly.
+  @Then("the notification has a cover")
+  public void theNotificationHasACover() {
+    throw new io.cucumber.java.PendingException("WIP: step needs implementation");
+  }
+
+  // TODO (WIP): Implement this step matcher properly.
+  @Then("the notification payload contains a RejectionNotification")
+  public void theNotificationPayloadContainsARejectionNotification() {
+    throw new io.cucumber.java.PendingException("WIP: step needs implementation");
+  }
+
+  // TODO (WIP): Implement this step matcher properly.
+  @Then("the notification carries its dispatch time")
+  public void theNotificationCarriesItsDispatchTime() {
+    throw new io.cucumber.java.PendingException("WIP: step needs implementation");
+  }
+
+  // TODO (WIP): Implement this step matcher properly.
+  @Then("the command book targets the source aggregate")
+  public void theCommandBookTargetsTheSourceAggregate() {
+    throw new io.cucumber.java.PendingException("WIP: step needs implementation");
+  }
+
+  // TODO (WIP): Implement this step matcher properly.
+  @Then("the command book preserves the correlation ID")
+  public void theCommandBookPreservesTheCorrelationId() {
+    throw new io.cucumber.java.PendingException("WIP: step needs implementation");
+  }
+
+  // TODO (WIP): Implement this step matcher properly.
+  @Then("the rejection reason equals {string}")
+  public void theRejectionReasonEquals(String reason) {
+    throw new io.cucumber.java.PendingException("WIP: step needs implementation");
+  }
+
+  // TODO (WIP): Implement this step matcher properly.
+  @Then("the rejection reason carries the full error details")
+  public void theRejectionReasonCarriesTheFullErrorDetails() {
+    throw new io.cucumber.java.PendingException("WIP: step needs implementation");
+  }
+
+  // TODO (WIP): Implement this step matcher properly.
+  @Then("the rejected command is the original command")
+  public void theRejectedCommandIsTheOriginalCommand() {
+    throw new io.cucumber.java.PendingException("WIP: step needs implementation");
+  }
+
+  // TODO (WIP): Implement this step matcher properly.
+  @Then("all command fields are preserved")
+  public void allCommandFieldsArePreserved() {
+    throw new io.cucumber.java.PendingException("WIP: step needs implementation");
+  }
+
+  // TODO (WIP): Implement this step matcher properly.
+  @Then("the full saga origin chain is preserved")
+  public void theFullSagaOriginChainIsPreserved() {
+    throw new io.cucumber.java.PendingException("WIP: step needs implementation");
+  }
+
+  // TODO (WIP): Implement this step matcher properly.
+  @Then("the root cause can be traced through the chain")
+  public void theRootCauseCanBeTracedThroughTheChain() {
+    throw new io.cucumber.java.PendingException("WIP: step needs implementation");
+  }
+
+  // TODO (WIP): Implement this step matcher properly.
+  @Then("saga rejections produce a compensation notification")
+  public void sagaRejectionsProduceACompensationNotification() {
+    throw new io.cucumber.java.PendingException("WIP: step needs implementation");
+  }
+
+  // TODO (WIP): Implement this step matcher properly.
+  @Then("process manager rejections produce a compensation notification")
+  public void processManagerRejectionsProduceACompensationNotification() {
+    throw new io.cucumber.java.PendingException("WIP: step needs implementation");
+  }
 }
