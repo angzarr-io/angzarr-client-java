@@ -80,8 +80,8 @@ publishing {
 
                 licenses {
                     license {
-                        name.set("AGPL-3.0-only")
-                        url.set("https://www.gnu.org/licenses/agpl-3.0.html")
+                        name.set("BSD-3-Clause")
+                        url.set("https://opensource.org/licenses/BSD-3-Clause")
                     }
                 }
             }
