@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="dev.angzarr.client.router.CommandHandlerRouterTest$NotificationHandlingTests" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-03-10T20:30:58" hostname="DESKTOP-GJ1OCQP" time="0.009">
+  <properties/>
+  <testcase name="dispatch_notification_calls_onRejected()" classname="dev.angzarr.client.router.CommandHandlerRouterTest$NotificationHandlingTests" time="0.008"/>
+  <testcase name="dispatch_notification_with_events_returns_events()" classname="dev.angzarr.client.router.CommandHandlerRouterTest$NotificationHandlingTests" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

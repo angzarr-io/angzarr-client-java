@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="dev.angzarr.client.ErrorIntrospectionTest" tests="13" skipped="0" failures="0" errors="0" timestamp="2026-03-10T20:30:58" hostname="DESKTOP-GJ1OCQP" time="0.008">
+  <properties/>
+  <testcase name="commandRejectedError_should_return_true_for_isPreconditionFailed()" classname="dev.angzarr.client.ErrorIntrospectionTest" time="0.004"/>
+  <testcase name="grpcError_with_other_code_should_return_false_for_isPreconditionFailed()" classname="dev.angzarr.client.ErrorIntrospectionTest" time="0.0"/>
+  <testcase name="grpcError_with_FAILED_PRECONDITION_should_return_true_for_isPreconditionFailed()" classname="dev.angzarr.client.ErrorIntrospectionTest" time="0.001"/>
+  <testcase name="grpcError_with_other_code_should_return_false_for_isNotFound()" classname="dev.angzarr.client.ErrorIntrospectionTest" time="0.0"/>
+  <testcase name="connectionError_should_return_true_for_isConnectionError()" classname="dev.angzarr.client.ErrorIntrospectionTest" time="0.0"/>
+  <testcase name="grpcError_with_other_code_should_return_false_for_isConnectionError()" classname="dev.angzarr.client.ErrorIntrospectionTest" time="0.001"/>
+  <testcase name="transportError_should_return_true_for_isConnectionError()" classname="dev.angzarr.client.ErrorIntrospectionTest" time="0.0"/>
+  <testcase name="invalidArgumentError_should_return_true_for_isInvalidArgument()" classname="dev.angzarr.client.ErrorIntrospectionTest" time="0.0"/>
+  <testcase name="grpcError_with_other_code_should_return_false_for_isInvalidArgument()" classname="dev.angzarr.client.ErrorIntrospectionTest" time="0.0"/>
+  <testcase name="grpcError_with_INVALID_ARGUMENT_should_return_true_for_isInvalidArgument()" classname="dev.angzarr.client.ErrorIntrospectionTest" time="0.0"/>
+  <testcase name="grpcError_with_UNAVAILABLE_should_return_true_for_isConnectionError()" classname="dev.angzarr.client.ErrorIntrospectionTest" time="0.0"/>
+  <testcase name="grpcError_with_NOT_FOUND_should_return_true_for_isNotFound()" classname="dev.angzarr.client.ErrorIntrospectionTest" time="0.0"/>
+  <testcase name="clientError_should_have_default_false_for_all_introspection_methods()" classname="dev.angzarr.client.ErrorIntrospectionTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

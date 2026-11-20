@@ -1,0 +1,8 @@
+version: v2
+inputs:
+  - directory: angzarr-project/proto
+plugins:
+  - remote: buf.build/protocolbuffers/java
+    out: proto
+  - remote: buf.build/grpc/java
+    out: proto

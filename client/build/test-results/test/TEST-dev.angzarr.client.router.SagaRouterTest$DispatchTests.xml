@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="dev.angzarr.client.router.SagaRouterTest$DispatchTests" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-03-10T20:30:58" hostname="DESKTOP-GJ1OCQP" time="0.003">
+  <properties/>
+  <testcase name="dispatch_OrderCompleted_produces_fulfillment_command()" classname="dev.angzarr.client.router.SagaRouterTest$DispatchTests" time="0.001"/>
+  <testcase name="dispatch_no_events_field_in_response()" classname="dev.angzarr.client.router.SagaRouterTest$DispatchTests" time="0.0"/>
+  <testcase name="dispatch_null_source_throws_exception()" classname="dev.angzarr.client.router.SagaRouterTest$DispatchTests" time="0.001"/>
+  <testcase name="dispatch_uses_destination_sequence()" classname="dev.angzarr.client.router.SagaRouterTest$DispatchTests" time="0.0"/>
+  <testcase name="dispatch_OrderCancelled_produces_no_commands()" classname="dev.angzarr.client.router.SagaRouterTest$DispatchTests" time="0.0"/>
+  <testcase name="dispatch_empty_source_throws_exception()" classname="dev.angzarr.client.router.SagaRouterTest$DispatchTests" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
